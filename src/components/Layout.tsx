@@ -52,6 +52,7 @@ const Layout = ({ onLogout }: LayoutProps) => {
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
     { text: 'Novo Briefing', icon: <CampaignIcon />, path: '/briefing' },
+    { text: 'Progresso', icon: <CampaignIcon />, path: '/progresso' }, // Adicione esta linha
   ];
 
   return (

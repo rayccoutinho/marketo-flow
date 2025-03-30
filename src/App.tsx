@@ -4,6 +4,7 @@ import { Box } from '@mui/material';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import CampaignBriefing from './pages/CampaignBriefing';
+import ContentProgressPage from './pages/ContentProgressPage';
 import Layout from './components/Layout';
 
 function App() {
@@ -17,15 +18,15 @@ function App() {
 
   const handleLogout = () => {
     setIsAuthenticated(false);
-    navigate('/');
+    navigate('/login');
   };
 
   return (
     <Box sx={{ height: '100vh', bgcolor: '#f5f7fb' }}>
       <Routes>
-        {/* Rota pública */}
+        {/* Rota de login */}
         <Route 
-          path="/" 
+          path="/login" 
           element={
             isAuthenticated ? 
               <Navigate to="/dashboard" replace /> : 
@@ -33,16 +34,22 @@ function App() {
           } 
         />
         
-        {/* Rotas protegidas */}
+        {/* Redirecionamento raiz */}
         <Route 
-          element={<Layout onLogout={handleLogout} />}
-        >
+          path="/" 
+          element={
+            <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
+          } 
+        />
+        
+        {/* Rotas protegidas */}
+        <Route element={<Layout onLogout={handleLogout} />}>
           <Route 
             path="/dashboard" 
             element={
               isAuthenticated ? 
                 <Dashboard /> : 
-                <Navigate to="/" replace />
+                <Navigate to="/login" replace />
             } 
           />
           <Route 
@@ -50,7 +57,23 @@ function App() {
             element={
               isAuthenticated ? 
                 <CampaignBriefing /> : 
-                <Navigate to="/" replace />
+                <Navigate to="/login" replace />
+            } 
+          />
+          <Route 
+            path="/progresso" 
+            element={
+              isAuthenticated ? 
+                <ContentProgressPage /> : 
+                <Navigate to="/login" replace />
+            } 
+          />
+          <Route 
+            path="/briefing/:id" 
+            element={
+              isAuthenticated ? 
+                <CampaignBriefing /> : 
+                <Navigate to="/login" replace />
             } 
           />
         </Route>

@@ -1,5 +1,5 @@
-import React from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import React, { useState, useRef } from 'react';
+import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import { 
   Box, 
   Typography, 
@@ -17,12 +17,43 @@ import {
   Chip,
   Autocomplete,
   Tabs,
-  Tab
+  Tab,
+  IconButton,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import ptBR from 'date-fns/locale/pt-BR';
+import { FiPlus, FiTrash2, FiChevronDown, FiChevronUp, FiPaperclip, FiFile, FiX } from 'react-icons/fi';
+
+// Tipos
+type ContentType = 'image' | 'video' | 'text' | 'banner' | 'story';
+type ContentNature = 'paid' | 'organic';
+type PlatformType = 'facebook' | 'instagram' | 'linkedin' | 'twitter' | 'website' | 'meta_ads' | 'google_ads';
+type ExpandableSections = 'contentPlan' | 'approvalWorkflow' | 'attachments';
+
+interface ContentItem {
+  id: string;
+  title: string;
+  type: ContentType;
+  platform: PlatformType;
+  nature: ContentNature;
+  dueDate: string;
+  assignedTo: string;
+  budget?: number;
+  notes?: string;
+}
+
+type Attachment = {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+};
 
 type FormValues = {
   campaignName: string;
@@ -46,36 +77,72 @@ type FormValues = {
   competitorAnalysis: string;
   requiresApproval: boolean;
   template: string;
+  contentPlan: {
+    items: ContentItem[];
+  };
+  approvalWorkflow: string[];
+  progressMetrics: {
+    targetProgress: number;
+    reviewStages: string[];
+  };
+  attachments: Attachment[];
 };
 
+// Constantes
 const campaignTemplates = [
-  { value: 'institutional', label: 'Institucional (ex: Casas André Luiz)' },
-  { value: 'ecommerce', label: 'E-commerce (ex: Mercatudo)' },
+  { value: 'institutional', label: 'Institucional' },
+  { value: 'ecommerce', label: 'E-commerce' },
   { value: 'leadgen', label: 'Geração de Leads' },
   { value: 'branding', label: 'Branding' }
 ];
 
+const contentTypes = [
+  { value: 'image', label: 'Imagem' },
+  { value: 'video', label: 'Vídeo' },
+  { value: 'text', label: 'Texto' },
+  { value: 'banner', label: 'Banner' },
+  { value: 'story', label: 'Story' }
+];
+
+const platforms = [
+  { value: 'facebook', label: 'Facebook' },
+  { value: 'instagram', label: 'Instagram' },
+  { value: 'meta_ads', label: 'Meta Ads' },
+  { value: 'google_ads', label: 'Google Ads' },
+  { value: 'linkedin', label: 'LinkedIn' },
+  { value: 'twitter', label: 'Twitter' },
+  { value: 'website', label: 'Website' }
+];
+
 const channels = [
+  'Facebook',
+  'Instagram',
   'Meta Ads',
   'Google Ads',
   'Email Marketing',
   'LinkedIn',
   'Twitter/X',
-  'Instagram',
   'TikTok',
   'Outros'
 ];
 
-const competitorFields = [
-  'Estratégia de Conteúdo',
-  'Investimento em Ads',
-  'Canais Prioritários',
-  'Taxa de Engajamento'
+const teamMembers = [
+  'Ana Silva (Design)',
+  'Carlos Mendes (Redação)',
+  'João Santos (Mídia)',
+  'Maria Oliveira (Gerente)'
 ];
 
 const CampaignBriefing = () => {
-  const [activeTab, setActiveTab] = React.useState(0);
-  const { control, handleSubmit, formState: { errors }, watch } = useForm<FormValues>({
+  const [activeTab, setActiveTab] = useState(0);
+  const [expandedSections, setExpandedSections] = useState<Record<ExpandableSections, boolean>>({
+    contentPlan: true,
+    approvalWorkflow: true,
+    attachments: true
+  });
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { control, handleSubmit, formState: { errors }, watch, setValue } = useForm<FormValues>({
     defaultValues: {
       campaignName: '',
       campaignType: '',
@@ -97,9 +164,35 @@ const CampaignBriefing = () => {
       },
       competitorAnalysis: '',
       requiresApproval: false,
-      template: ''
+      template: '',
+      contentPlan: {
+        items: []
+      },
+      approvalWorkflow: [],
+      progressMetrics: {
+        targetProgress: 20,
+        reviewStages: ['Rascunho', 'Revisão', 'Aprovação', 'Publicação']
+      },
+      attachments: []
     }
   });
+
+  const { fields: contentItems, append: appendContentItem, remove: removeContentItem } = useFieldArray({
+    control,
+    name: 'contentPlan.items'
+  });
+
+  const { fields: attachments, append: appendAttachment, remove: removeAttachment } = useFieldArray({
+    control,
+    name: 'attachments'
+  });
+
+  const toggleSection = (section: ExpandableSections) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
 
   const onSubmit = (data: FormValues) => {
     console.log('Dados do briefing:', data);
@@ -110,7 +203,47 @@ const CampaignBriefing = () => {
     setActiveTab(newValue);
   };
 
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files.length > 0) {
+      const files = Array.from(event.target.files).map(file => ({
+        id: `file-${Date.now()}-${file.name}`,
+        name: file.name,
+        size: file.size,
+        type: file.type
+      }));
+
+      appendAttachment(files);
+      event.target.value = '';
+    }
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
   const watchBudget = watch('budget');
+  const watchStartDate = watch('startDate');
+
+  const addContentItem = () => {
+    appendContentItem({
+      id: `item-${Date.now()}`,
+      title: '',
+      type: 'image',
+      platform: 'facebook',
+      nature: 'organic',
+      dueDate: watchStartDate?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
+      assignedTo: teamMembers[0],
+      notes: ''
+    });
+  };
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
@@ -122,7 +255,8 @@ const CampaignBriefing = () => {
         <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 4 }}>
           <Tab label="Informações Básicas" />
           <Tab label="Estratégia" />
-          <Tab label="Análise Competitiva" />
+          <Tab label="Conteúdo" />
+          <Tab label="Anexos" />
           <Tab label="Revisão" />
         </Tabs>
         
@@ -155,34 +289,34 @@ const CampaignBriefing = () => {
               </Grid>
 
               <Grid item xs={12} md={6}>
-  <Controller
-    name="template"
-    control={control}
-    render={({ field }) => {
-      const currentValue = campaignTemplates.find(
-        (option) => option.value === field.value
-      ) || null;
+                <Controller
+                  name="template"
+                  control={control}
+                  render={({ field }) => {
+                    const currentValue = campaignTemplates.find(
+                      (option) => option.value === field.value
+                    ) || null;
 
-      return (
-        <Autocomplete
-          options={campaignTemplates}
-          getOptionLabel={(option) => option.label}
-          value={currentValue}
-          onChange={(_, newValue) => {
-            field.onChange(newValue ? newValue.value : '');
-          }}
-          renderInput={(params) => (
-            <TextField 
-              {...params} 
-              label="Template de Campanha" 
-              variant="outlined" 
-            />
-          )}
-        />
-      );
-    }}
-  />
-</Grid>
+                    return (
+                      <Autocomplete
+                        options={campaignTemplates}
+                        getOptionLabel={(option) => option.label}
+                        value={currentValue}
+                        onChange={(_, newValue) => {
+                          field.onChange(newValue ? newValue.value : '');
+                        }}
+                        renderInput={(params) => (
+                          <TextField 
+                            {...params} 
+                            label="Template de Campanha" 
+                            variant="outlined" 
+                          />
+                        )}
+                      />
+                    );
+                  }}
+                />
+              </Grid>
 
               <Grid item xs={12} md={6}>
                 <Controller
@@ -195,6 +329,8 @@ const CampaignBriefing = () => {
                       label="Objetivo Principal"
                       variant="outlined"
                       fullWidth
+                      multiline
+                      rows={2}
                       error={!!errors.objective}
                       helperText={errors.objective?.message}
                     />
@@ -516,11 +652,298 @@ const CampaignBriefing = () => {
           {activeTab === 2 && (
             <Grid container spacing={3}>
               <Grid item xs={12}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <Typography variant="h6">Plano de Conteúdo</Typography>
+                  <IconButton onClick={() => toggleSection('contentPlan')} size="small" sx={{ ml: 1 }}>
+                    {expandedSections.contentPlan ? <FiChevronUp /> : <FiChevronDown />}
+                  </IconButton>
+                </Box>
+                <Divider sx={{ mb: 3 }} />
+                {expandedSections.contentPlan && (
+                  <>
+                    <Box sx={{ mb: 3 }}>
+                      <Button
+                        variant="outlined"
+                        startIcon={<FiPlus />}
+                        onClick={addContentItem}
+                        sx={{ mb: 2 }}
+                      >
+                        Adicionar Item
+                      </Button>
+
+                      {contentItems.map((field, index) => (
+                        <Box key={field.id} sx={{ 
+                          p: 3, 
+                          mb: 3, 
+                          border: '1px solid', 
+                          borderColor: 'divider', 
+                          borderRadius: 1,
+                          backgroundColor: 'background.paper'
+                        }}>
+                          <Grid container spacing={2} alignItems="center">
+                            <Grid item xs={12} md={6}>
+                              <Controller
+                                name={`contentPlan.items.${index}.title`}
+                                control={control}
+                                rules={{ required: 'Título é obrigatório' }}
+                                render={({ field }) => (
+                                  <TextField
+                                    {...field}
+                                    label="Título do Conteúdo"
+                                    fullWidth
+                                    error={!!errors.contentPlan?.items?.[index]?.title}
+                                    helperText={errors.contentPlan?.items?.[index]?.title?.message}
+                                  />
+                                )}
+                              />
+                            </Grid>
+
+                            <Grid item xs={6} md={2}>
+                              <Controller
+                                name={`contentPlan.items.${index}.type`}
+                                control={control}
+                                render={({ field }) => (
+                                  <FormControl fullWidth>
+                                    <InputLabel>Tipo</InputLabel>
+                                    <Select {...field} label="Tipo">
+                                      {contentTypes.map(type => (
+                                        <MenuItem key={type.value} value={type.value}>
+                                          {type.label}
+                                        </MenuItem>
+                                      ))}
+                                    </Select>
+                                  </FormControl>
+                                )}
+                              />
+                            </Grid>
+
+                            <Grid item xs={6} md={2}>
+                              <Controller
+                                name={`contentPlan.items.${index}.platform`}
+                                control={control}
+                                render={({ field }) => (
+                                  <FormControl fullWidth>
+                                    <InputLabel>Plataforma</InputLabel>
+                                    <Select {...field} label="Plataforma">
+                                      {platforms.map(platform => (
+                                        <MenuItem key={platform.value} value={platform.value}>
+                                          {platform.label}
+                                        </MenuItem>
+                                      ))}
+                                    </Select>
+                                  </FormControl>
+                                )}
+                              />
+                            </Grid>
+
+                            <Grid item xs={6} md={2}>
+                              <Controller
+                                name={`contentPlan.items.${index}.nature`}
+                                control={control}
+                                render={({ field }) => (
+                                  <FormControl fullWidth>
+                                    <InputLabel>Tipo</InputLabel>
+                                    <Select {...field} label="Tipo">
+                                      <MenuItem value="organic">Orgânico</MenuItem>
+                                      <MenuItem value="paid">Pago</MenuItem>
+                                    </Select>
+                                  </FormControl>
+                                )}
+                              />
+                            </Grid>
+
+                            {watch(`contentPlan.items.${index}.nature`) === 'paid' && (
+                              <Grid item xs={6} md={2}>
+                                <Controller
+                                  name={`contentPlan.items.${index}.budget`}
+                                  control={control}
+                                  render={({ field }) => (
+                                    <TextField
+                                      {...field}
+                                      label="Orçamento (R$)"
+                                      type="number"
+                                      fullWidth
+                                      InputProps={{ inputProps: { min: 0 } }}
+                                    />
+                                  )}
+                                />
+                              </Grid>
+                            )}
+
+                            <Grid item xs={6} md={2}>
+                              <Controller
+                                name={`contentPlan.items.${index}.dueDate`}
+                                control={control}
+                                render={({ field }) => (
+                                  <TextField
+                                    {...field}
+                                    label="Data de Entrega"
+                                    type="date"
+                                    fullWidth
+                                    InputLabelProps={{ shrink: true }}
+                                  />
+                                )}
+                              />
+                            </Grid>
+
+                            <Grid item xs={6} md={2}>
+                              <Controller
+                                name={`contentPlan.items.${index}.assignedTo`}
+                                control={control}
+                                render={({ field }) => (
+                                  <FormControl fullWidth>
+                                    <InputLabel>Responsável</InputLabel>
+                                    <Select {...field} label="Responsável">
+                                      {teamMembers.map(member => (
+                                        <MenuItem key={member} value={member}>
+                                          {member}
+                                        </MenuItem>
+                                      ))}
+                                    </Select>
+                                  </FormControl>
+                                )}
+                              />
+                            </Grid>
+
+                            <Grid item xs={12}>
+                              <Controller
+                                name={`contentPlan.items.${index}.notes`}
+                                control={control}
+                                render={({ field }) => (
+                                  <TextField
+                                    {...field}
+                                    label="Observações"
+                                    fullWidth
+                                    multiline
+                                    rows={2}
+                                  />
+                                )}
+                              />
+                            </Grid>
+
+                            <Grid item xs={12} sx={{ textAlign: 'right' }}>
+                              <IconButton
+                                onClick={() => removeContentItem(index)}
+                                color="error"
+                                sx={{ mt: -1 }}
+                              >
+                                <FiTrash2 />
+                              </IconButton>
+                            </Grid>
+                          </Grid>
+                        </Box>
+                      ))}
+                    </Box>
+
+                    <Grid item xs={12}>
+                      <Typography variant="h6" gutterBottom>
+                        Fluxo de Aprovação
+                      </Typography>
+                      <Divider sx={{ mb: 2 }} />
+                      <Controller
+                        name="approvalWorkflow"
+                        control={control}
+                        render={({ field }) => (
+                          <Autocomplete
+                            multiple
+                            options={teamMembers}
+                            value={field.value}
+                            onChange={(_, newValue) => field.onChange(newValue)}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                label="Ordem de Aprovação"
+                                placeholder="Selecione os aprovadores"
+                              />
+                            )}
+                            renderTags={(value, getTagProps) =>
+                              value.map((option, index) => (
+                                <Chip
+                                  label={option}
+                                  {...getTagProps({ index })}
+                                  size="small"
+                                />
+                              ))
+                            }
+                          />
+                        )}
+                      />
+                    </Grid>
+                  </>
+                )}
+              </Grid>
+            </Grid>
+          )}
+
+          {activeTab === 3 && (
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <Typography variant="h6">Documentos Anexados</Typography>
+                  <IconButton onClick={() => toggleSection('attachments')} size="small" sx={{ ml: 1 }}>
+                    {expandedSections.attachments ? <FiChevronUp /> : <FiChevronDown />}
+                  </IconButton>
+                </Box>
+                <Divider sx={{ mb: 3 }} />
+                {expandedSections.attachments && (
+                  <>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileUpload}
+                      accept=".pdf,.doc,.docx"
+                      multiple
+                      style={{ display: 'none' }}
+                    />
+                    <Button
+                      variant="outlined"
+                      startIcon={<FiPaperclip />}
+                      onClick={triggerFileInput}
+                      sx={{ mb: 3 }}
+                    >
+                      Anexar Documentos
+                    </Button>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      Formatos aceitos: PDF, DOC, DOCX (Máx. 10MB cada)
+                    </Typography>
+
+                    {attachments.length > 0 ? (
+                      <List sx={{ bgcolor: 'background.paper' }}>
+                        {attachments.map((file, index) => (
+                          <ListItem
+                            key={file.id}
+                            secondaryAction={
+                              <IconButton edge="end" onClick={() => removeAttachment(index)}>
+                                <FiX />
+                              </IconButton>
+                            }
+                          >
+                            <ListItemIcon>
+                              <FiFile />
+                            </ListItemIcon>
+                            <ListItemText
+                              primary={file.name}
+                              secondary={formatFileSize(file.size)}
+                            />
+                          </ListItem>
+                        ))}
+                      </List>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        Nenhum documento anexado ainda
+                      </Typography>
+                    )}
+                  </>
+                )}
+              </Grid>
+            </Grid>
+          )}
+
+          {activeTab === 4 && (
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
                 <Typography variant="h6" gutterBottom>
-                  Análise Competitiva
-                </Typography>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Baseado nos briefings institucionais e de produto fornecidos
+                  Revisão Final
                 </Typography>
                 <Divider sx={{ mb: 3 }} />
               </Grid>
@@ -536,33 +959,11 @@ const CampaignBriefing = () => {
                       variant="outlined"
                       fullWidth
                       multiline
-                      rows={8}
-                      placeholder={`Exemplo:\n- Concorrente A: Investe pesado em Meta Ads (R$50k/mês)\n- Concorrente B: Conteúdo orgânico forte no Instagram\n- Diferencial nosso: ${watch('template') === 'institutional' ? 'Transparência nas doações' : 'Preços competitivos nos bazares'}`}
+                      rows={6}
+                      placeholder="Descreva a análise dos principais concorrentes..."
                     />
                   )}
                 />
-              </Grid>
-
-              <Grid item xs={12}>
-                <Typography variant="subtitle2" gutterBottom>
-                  Campos sugeridos para análise:
-                </Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                  {competitorFields.map(field => (
-                    <Chip key={field} label={field} variant="outlined" />
-                  ))}
-                </Box>
-              </Grid>
-            </Grid>
-          )}
-
-          {activeTab === 3 && (
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom>
-                  Revisão Final
-                </Typography>
-                <Divider sx={{ mb: 3 }} />
               </Grid>
 
               <Grid item xs={12}>
@@ -586,7 +987,7 @@ const CampaignBriefing = () => {
 
               <Grid item xs={12}>
                 <Typography variant="body1" paragraph>
-                  Verifique todas as informações antes de enviar. Este briefing será usado para planejar toda a campanha de marketing, incluindo tráfego pago, conteúdo orgânico e análise de resultados.
+                  Verifique todas as informações antes de enviar. Este briefing será usado para planejar toda a campanha de marketing.
                 </Typography>
               </Grid>
             </Grid>
@@ -602,7 +1003,7 @@ const CampaignBriefing = () => {
               Voltar
             </Button>
             
-            {activeTab < 3 ? (
+            {activeTab < 4 ? (
               <Button 
                 variant="contained" 
                 size="large"
