@@ -1,0 +1,96 @@
+name: Load Test
+on:
+  # Trigger manual via interface do GitHub
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Ambiente alvo'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+  
+  # Trigger automático em pushes para main ou tags
+  push:
+    branches: [ "main" ]
+    tags: [ "v*.*.*" ]
+  
+  # Agendamento (UTC) - dias úteis às 18h
+  schedule:
+    - cron: '0 18 * * 1-5'
+
+jobs:
+  performance-test:
+    name: Run Load Test
+    runs-on: ubuntu-latest
+    container: grafana/k6
+    
+    # Ambiente e secrets (VALORES EXEMPLO)
+    env:
+      API_URL: ${{ 
+        inputs.environment == 'production' 
+          ? 'https://api.marketoflow.com' 
+          : 'https://staging.marketoflow.com' 
+      }}
+      API_TOKEN: ${{ Bearer abc123xyz }}           # Ex: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      K6_CLOUD_TOKEN: ${{ k6_cloud_123456 }} # Ex: "k6_cloud_2Fj5dKp9L3mN8qRsT1wXyZ7"
+
+    steps:
+      # Passo 1: Validar secrets
+      - name: Validate Secrets
+        run: |
+          if [ -z "$API_TOKEN" ]; then
+            echo "::error::API_TOKEN não configurada!"
+            exit 1
+          fi
+          echo "✅ Ambiente: $API_URL"
+        
+      # Passo 2: Checkout do código
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Passo 3: Executar teste (VALORES EXEMPLO)
+      - name: Run k6 Test
+        run: |
+          k6 run tests/performance/loadTest.js \
+            --env API_URL="$API_URL" \
+            --env API_TOKEN="$API_TOKEN" \
+            --env ENV="${{ inputs.environment || 'staging' }}" \
+            --vus 100 \                          # Virtual Users
+            --duration 5m \                      # Tempo de teste
+            --out cloud \                        # Envia para k6 Cloud (opcional)
+            --out json=test_results.json         # Salva localmente
+
+      # Passo 4: Processar resultados
+      - name: Process Results
+        if: always()
+        run: |
+          echo "📊 Resultados:"
+          cat test_results.json | jq '.metrics | { 
+            checks: .checks.values.pass, 
+            req_duration: .http_req_duration.values.avg 
+          }'
+        
+      # Passo 5: Upload dos resultados
+      - uses: actions/upload-artifact@v3
+        with:
+          name: k6-results-${{ github.run_id }}
+          path: |
+            test_results.json
+            loadTest.js
+
+      # Passo 6: Notificação (exemplo com Slack)
+      - name: Slack Notification
+        if: failure()
+        uses: slackapi/slack-github-action@v1
+        with:
+          slack-message: |
+            :warning: *Teste de carga falhou* (${{ github.workflow }})
+            *Ambiente*: ${{ inputs.environment || 'staging' }}
+            *Commit*: ${{ github.sha }}
+            *Logs*: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }} # Ex: "https://hooks.slack.com/services/T123456/B7890/ABC..."
