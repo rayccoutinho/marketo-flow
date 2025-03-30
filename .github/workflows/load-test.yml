@@ -2,6 +2,8 @@ name: Teste de Carga
 on:
   push:
     branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
   workflow_dispatch:
     inputs:
       target_env:
@@ -14,8 +16,9 @@ on:
           - production
 
 env:
-  API_BASE_PATH: "/api/v1"  # Adicionado caminho base
-  K6_BIN_PATH: "/usr/bin/k6"  # Caminho explícito
+  API_BASE_PATH: "/api/v1"
+  K6_BIN_PATH: "/usr/bin/k6"
+  NODE_VERSION: "20"
 
 jobs:
   performance-test:
@@ -29,10 +32,33 @@ jobs:
       - name: Baixar código
         uses: actions/checkout@v4
 
-      - name: Verificar estrutura do projeto
+      - name: Configurar ambiente
         run: |
-          if [ ! -f "tests/performance/loadTest.js" ]; then
-            echo "::error::Arquivo loadTest.js não encontrado!"
+          mkdir -p /tmp/results
+          chmod 777 /tmp/results
+          echo "API_URL=${{ inputs.target_env == 'production' && 'https://api.marketoflow.com' || 'https://staging.marketoflow.com' }}$API_BASE_PATH" >> $GITHUB_ENV
+
+      - name: Verificar tokens
+        run: |
+          if [ -z "${{ secrets.API_TOKEN }}" ]; then
+            echo "::error::API_TOKEN não configurado!"
             exit 1
           fi
-          echo "Estrutura do projeto OK"
+          echo "K6_CLOUD_TOKEN=${{ secrets.API_TOKEN }}" >> $GITHUB_ENV
+
+      - name: Executar teste
+        run: |
+          $K6_BIN_PATH run tests/performance/loadTest.js \
+            --env API_URL="$API_URL" \
+            --env API_TOKEN="${{ secrets.API_TOKEN }}" \
+            --env K6_CLOUD_TOKEN="${{ secrets.API_TOKEN }}" \
+            --vus ${{ inputs.target_env == 'production' && '200' || '100' }} \
+            --duration ${{ inputs.target_env == 'production' && '10m' || '5m' }} \
+            --out json=/tmp/results/test_results.json \
+            --summary-export=/tmp/results/summary.json
+
+      - name: Enviar resultados
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-${{ inputs.target_env || 'staging' }}
+          path: /tmp/results/*
