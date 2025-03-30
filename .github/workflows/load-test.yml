@@ -1,0 +1,9 @@
+name: Load Test
+on: [push, workflow_dispatch]
+jobs:
+  performance-test:
+    runs-on: ubuntu-latest
+    container: grafana/k6
+    steps:
+      - uses: actions/checkout@v4
+      - run: k6 run tests/performance/loadTest.js
