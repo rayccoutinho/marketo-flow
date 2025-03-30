@@ -1,0 +1,9 @@
+/* src/global.css */
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+/* Teste visual - deve aparecer fundo vermelho */
+body {
+  background-color: #f8fafc;
+}
