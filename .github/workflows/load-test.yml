@@ -1,4 +1,4 @@
-name: Load Test
+name: Teste de Carga
 on:
   push:
     branches: [ "main" ]
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       env:
-        description: "Target environment"
+        description: "Ambiente alvo"
         required: true
         default: "staging"
         type: choice
@@ -22,27 +22,27 @@ env:
 
 jobs:
   performance-test:
-    name: Run Load Test - ${{ inputs.env || 'staging' }}
+    name: Teste de Carga - ${{ inputs.env || 'staging' }}
     runs-on: ubuntu-latest
     container: grafana/k6
 
     steps:
-      - name: Checkout code
+      - name: Baixar código
         uses: actions/checkout@v4
 
-      - name: Validate environment
+      - name: Validar ambiente
         run: |
           if [ -z "$API_TOKEN" ]; then
-            echo "::error::API_TOKEN not configured!"
+            echo "::error::Token API não configurado!"
             exit 1
           fi
-          echo "✔ Using environment: $API_URL"
+          echo "✔ Ambiente configurado: $API_URL"
 
-      - name: Install jq
+      - name: Instalar jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      - name: Run performance test
-        id: k6-test
+      - name: Executar teste
+        id: teste-k6
         run: |
           k6 run tests/performance/loadTest.js \
             --env API_URL="$API_URL" \
@@ -53,26 +53,44 @@ jobs:
             --out json=test_results.json \
             --summary-export=summary.json
 
-      - name: Upload results
+      - name: Enviar resultados
         uses: actions/upload-artifact@v4
         with:
-          name: k6-results-${{ github.run_id }}-${{ inputs.env || 'staging' }}
+          name: resultados-${{ github.run_id }}-${{ inputs.env || 'staging' }}
           path: |
             test_results.json
             summary.json
 
-      - name: Check thresholds
+      - name: Verificar métricas
+        id: verificar-metricas
         run: |
-          echo "Test summary:"
+          echo "Relatório:"
           jq '.metrics | {
-            checks_pass_rate: .checks.values.pass,
-            http_failure_rate: .http_req_failed.values.rate,
-            avg_duration_ms: .http_req_duration.values.avg,
-            p95_duration_ms: .http_req_duration.values."p(95)"
+            taxa_sucesso: .checks.values.pass,
+            taxa_falha: .http_req_failed.values.rate,
+            duracao_media: .http_req_duration.values.avg,
+            p95_duracao: .http_req_duration.values."p(95)"
           }' summary.json
+          
+          # Converter métricas para variáveis
+          TAXA_FALHA=$(jq -r '.metrics.http_req_failed.values.rate' summary.json)
+          DURACAO_P95=$(jq -r '.metrics.http_req_duration.values."p(95)"' summary.json)
+          
+          # Definir limites
+          LIMITE_FALHA=0.01   # 1%
+          LIMITE_DURACAO=500  # 500ms
+          
+          # Verificar limites
+          if (( $(echo "$TAXA_FALHA > $LIMITE_FALHA" | bc -l) )) || 
+             (( $(echo "$DURACAO_P95 > $LIMITE_DURACAO" | bc -l) )); then
+            echo "::warning::Algumas métricas não atingiram o esperado"
+            echo "METRICAS_OK=false" >> $GITHUB_OUTPUT
+          else
+            echo "METRICAS_OK=true" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Fail if thresholds not met
-        if: ${{ failure() }}
+      - name: Falhar se métricas não atendem
+        if: steps.verificar-metricas.outputs.METRICAS_OK == 'false'
         run: |
-          echo "::error::Performance thresholds not met"
+          echo "::error::O teste não atingiu os requisitos de performance"
           exit 1
