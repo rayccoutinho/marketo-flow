@@ -1,9 +1,67 @@
 name: Load Test
-on: [push, workflow_dispatch]
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      env:
+        description: "Ambiente alvo"
+        required: true
+        default: "staging"
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  API_URL: ${{ inputs.env == 'production' && 'https://api.marketoflow.com' || 'https://staging.marketoflow.com' }}
+  API_TOKEN: ${{ secrets.API_TOKEN }}          # Valor exemplo: "Bearer abc123xyz"
+  K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }} # Valor exemplo: "k6_cloud_123456"
+
 jobs:
   performance-test:
+    name: Run Load Test - ${{ inputs.env || 'staging' }}
     runs-on: ubuntu-latest
     container: grafana/k6
+
     steps:
-      - uses: actions/checkout@v4
-      - run: k6 run tests/performance/loadTest.js
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Validate Secrets
+        run: |
+          if [ -z "$API_TOKEN" ]; then
+            echo "::error::API_TOKEN não configurada!"
+            exit 1
+          fi
+          echo "✔ Ambiente configurado: $API_URL"
+
+      - name: Run k6 Test
+        run: |
+          k6 run tests/performance/loadTest.js \
+            --env API_URL="$API_URL" \
+            --env API_TOKEN="$API_TOKEN" \
+            --vus ${{ inputs.env == 'production' && '200' || '100' }} \
+            --duration ${{ inputs.env == 'production' && '10m' || '5m' }} \
+            ${K6_CLOUD_TOKEN && '--out cloud' || ''} \
+            --out json=test_results.json \
+            --summary-export=summary.json
+
+      - name: Upload Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: k6-results-${{ github.run_id }}-${{ inputs.env || 'staging' }}
+          path: |
+            test_results.json
+            summary.json
+
+      - name: Check Thresholds
+        run: |
+          echo "Resultados:"
+          jq '.metrics | {
+            checks: .checks.values.pass,
+            http_errors: .http_req_failed.values.rate,
+            avg_duration: .http_req_duration.values.avg
+          }' summary.json
