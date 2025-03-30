@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       env:
-        description: "Ambiente alvo"
+        description: "Target environment"
         required: true
         default: "staging"
         type: choice
@@ -17,8 +17,8 @@ on:
 
 env:
   API_URL: ${{ inputs.env == 'production' && 'https://api.marketoflow.com' || 'https://staging.marketoflow.com' }}
-  API_TOKEN: ${{ secrets.API_TOKEN }}          # Valor exemplo: "Bearer abc123xyz"
-  K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }} # Valor exemplo: "k6_cloud_123456"
+  API_TOKEN: ${{ secrets.API_TOKEN }}
+  K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
 
 jobs:
   performance-test:
@@ -27,41 +27,52 @@ jobs:
     container: grafana/k6
 
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Validate Secrets
+      - name: Validate environment
         run: |
           if [ -z "$API_TOKEN" ]; then
-            echo "::error::API_TOKEN não configurada!"
+            echo "::error::API_TOKEN not configured!"
             exit 1
           fi
-          echo "✔ Ambiente configurado: $API_URL"
+          echo "✔ Using environment: $API_URL"
 
-      - name: Run k6 Test
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Run performance test
+        id: k6-test
         run: |
           k6 run tests/performance/loadTest.js \
             --env API_URL="$API_URL" \
             --env API_TOKEN="$API_TOKEN" \
             --vus ${{ inputs.env == 'production' && '200' || '100' }} \
             --duration ${{ inputs.env == 'production' && '10m' || '5m' }} \
-            ${K6_CLOUD_TOKEN && '--out cloud' || ''} \
+            ${{ env.K6_CLOUD_TOKEN && '--out cloud' || '' }} \
             --out json=test_results.json \
             --summary-export=summary.json
 
-      - name: Upload Results
-        uses: actions/upload-artifact@v3
+      - name: Upload results
+        uses: actions/upload-artifact@v4
         with:
           name: k6-results-${{ github.run_id }}-${{ inputs.env || 'staging' }}
           path: |
             test_results.json
             summary.json
 
-      - name: Check Thresholds
+      - name: Check thresholds
         run: |
-          echo "Resultados:"
+          echo "Test summary:"
           jq '.metrics | {
-            checks: .checks.values.pass,
-            http_errors: .http_req_failed.values.rate,
-            avg_duration: .http_req_duration.values.avg
+            checks_pass_rate: .checks.values.pass,
+            http_failure_rate: .http_req_failed.values.rate,
+            avg_duration_ms: .http_req_duration.values.avg,
+            p95_duration_ms: .http_req_duration.values."p(95)"
           }' summary.json
+
+      - name: Fail if thresholds not met
+        if: ${{ failure() }}
+        run: |
+          echo "::error::Performance thresholds not met"
+          exit 1
