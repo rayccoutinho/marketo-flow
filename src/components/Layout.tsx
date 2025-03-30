@@ -46,20 +46,18 @@ const Layout = ({ onLogout }: LayoutProps) => {
   const handleLogoutClick = () => {
     handleMenuClose();
     onLogout();
-    navigate('/');
+    navigate('/login');
   };
 
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-    { text: 'Novo Briefing', icon: <CampaignIcon />, path: '/briefing' },
-    { text: 'Progresso', icon: <CampaignIcon />, path: '/progresso' }, // Adicione esta linha
+    { text: 'Nova Campanha', icon: <CampaignIcon />, path: '/briefing/novo' },
   ];
 
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
       
-      {/* Sidebar */}
       <Box
         component="nav"
         sx={{ 
@@ -114,7 +112,6 @@ const Layout = ({ onLogout }: LayoutProps) => {
         </Box>
       </Box>
 
-      {/* Conteúdo Principal */}
       <Box
         component="main"
         sx={{
@@ -126,7 +123,6 @@ const Layout = ({ onLogout }: LayoutProps) => {
       >
         <Toolbar />
         
-        {/* Header com perfil do usuário */}
         <Box 
           sx={{ 
             display: 'flex', 

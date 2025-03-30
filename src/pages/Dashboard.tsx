@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { 
   FiDollarSign,
   FiCalendar,
@@ -15,7 +16,8 @@ import {
   FiEye,
   FiFileText,
   FiTrendingUp,
-  FiLayers
+  FiLayers,
+  FiEdit
 } from 'react-icons/fi';
 import CampaignProgressChart from '../components/CampaignProgressChart';
 import ContentStatusChart from '../components/ContentStatusChart';
@@ -27,6 +29,26 @@ interface MetricCardProps {
   value: string;
   change: number;
   trend: 'up' | 'down' | 'neutral';
+}
+
+interface Campaign {
+  id: string;
+  name: string;
+  status: 'active' | 'paused';
+  progress: number;
+  pendingTasks: number;
+  overdueTasks: number;
+  channel: string;
+  type: string;
+  budget: number;
+  spent: number;
+  startDate: string;
+  endDate: string;
+  briefingStatus: 'approved' | 'pending' | 'draft';
+  contentItems: Array<{
+    status: string;
+    count: number;
+  }>;
 }
 
 const MetricCard = ({ icon, title, value, change, trend }: MetricCardProps) => (
@@ -88,13 +110,13 @@ const AlertCard = ({ type, message }: AlertCardProps) => {
 };
 
 export default function MarketingDashboard() {
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'active' | 'paused'>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
 
-  // Dados de exemplo integrados com briefing e progresso
-  const campaignData = [
+  const campaignData: Campaign[] = [
     { 
-      id: 1, 
+      id: '1',
       name: 'Black Friday 2024', 
       status: 'active',
       progress: 65,
@@ -115,7 +137,7 @@ export default function MarketingDashboard() {
       ]
     },
     { 
-      id: 2, 
+      id: '2', 
       name: 'Natal 2024', 
       status: 'active',
       progress: 42,
@@ -136,7 +158,7 @@ export default function MarketingDashboard() {
       ]
     },
     { 
-      id: 3, 
+      id: '3', 
       name: 'Lead Gen - Imóveis', 
       status: 'paused',
       progress: 28,
@@ -158,14 +180,12 @@ export default function MarketingDashboard() {
     }
   ];
 
-  // Filtrar campanhas
-  const filteredCampaigns = campaignData.filter(campaign => {
+  const filteredCampaigns = campaignData.filter((campaign: Campaign) => {
     const matchesSearch = campaign.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesTab = activeTab === 'all' || campaign.status === activeTab;
     return matchesSearch && matchesTab;
   });
 
-  // Métricas calculadas
   const totalCampaigns = campaignData.length;
   const activeCampaigns = campaignData.filter(c => c.status === 'active').length;
   const avgProgress = Math.round(campaignData.reduce((sum, c) => sum + c.progress, 0) / campaignData.length);
@@ -174,14 +194,12 @@ export default function MarketingDashboard() {
   const totalSpent = campaignData.reduce((sum, c) => sum + c.spent, 0);
   const budgetUsage = Math.round((totalSpent / totalBudget) * 100);
 
-  // Status de briefing
   const briefingStatus = {
     approved: campaignData.filter(c => c.briefingStatus === 'approved').length,
     pending: campaignData.filter(c => c.briefingStatus === 'pending').length,
     draft: campaignData.filter(c => c.briefingStatus === 'draft').length
   };
 
-  // Status de conteúdo agregado
   const contentStatus = {
     published: campaignData.flatMap(c => c.contentItems).reduce((sum, item) => item.status === 'published' ? sum + item.count : sum, 0),
     approved: campaignData.flatMap(c => c.contentItems).reduce((sum, item) => item.status === 'approved' ? sum + item.count : sum, 0),
@@ -189,7 +207,6 @@ export default function MarketingDashboard() {
     not_started: campaignData.flatMap(c => c.contentItems).reduce((sum, item) => item.status === 'not_started' ? sum + item.count : sum, 0)
   };
 
-  // Alertas
   const alerts = [
     {
       type: 'warning' as const,
@@ -207,7 +224,6 @@ export default function MarketingDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard de Campanhas</h1>
@@ -226,14 +242,16 @@ export default function MarketingDashboard() {
             />
           </div>
           
-          <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+          <button 
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+            onClick={() => navigate('/briefing/novo')}
+          >
             <FiPlus size={18} />
             Nova Campanha
           </button>
         </div>
       </div>
 
-      {/* Alertas */}
       <div className="grid grid-cols-1 gap-3 mb-8">
         {alerts.map((alert, index) => (
           <motion.div
@@ -247,7 +265,6 @@ export default function MarketingDashboard() {
         ))}
       </div>
 
-      {/* Metric Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
         <MetricCard
           icon={<FiFileText size={20} />}
@@ -279,9 +296,7 @@ export default function MarketingDashboard() {
         />
       </div>
 
-      {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
-        {/* Progresso das Campanhas */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -299,7 +314,6 @@ export default function MarketingDashboard() {
           </div>
         </motion.div>
 
-        {/* Status de Conteúdo */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -317,7 +331,6 @@ export default function MarketingDashboard() {
           </div>
         </motion.div>
 
-        {/* Status de Briefing */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -336,7 +349,6 @@ export default function MarketingDashboard() {
         </motion.div>
       </div>
 
-      {/* Campanhas Table */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -347,7 +359,6 @@ export default function MarketingDashboard() {
           <h2 className="text-lg font-semibold text-gray-900">Todas as Campanhas</h2>
           
           <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
-            {/* Filtros por status */}
             <div className="flex rounded-lg bg-gray-100 p-1 border border-gray-300">
               <button 
                 className={`px-3 py-1 text-sm rounded-md ${activeTab === 'all' ? 'bg-blue-600 text-white' : 'text-gray-700'}`}
@@ -386,7 +397,7 @@ export default function MarketingDashboard() {
               </tr>
             </thead>
             <tbody>
-              {filteredCampaigns.map((campaign) => (
+              {filteredCampaigns.map((campaign: Campaign) => (
                 <tr key={campaign.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
                   <td className="py-4 pl-2">
                     <p className="font-medium text-gray-900">{campaign.name}</p>
@@ -445,10 +456,29 @@ export default function MarketingDashboard() {
                     R$ {(campaign.budget / 1000).toFixed(1)}k
                   </td>
                   <td className="pr-2">
-                    <button className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
-                      <FiEye size={14} />
-                      Detalhes
-                    </button>
+                    <div className="flex gap-2">
+                      <button 
+                        className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
+                        onClick={() => navigate(`/campanhas/${campaign.id}`, { state: { fromDashboard: true } })}
+                      >
+                        <FiEye size={14} />
+                        Detalhes
+                      </button>
+                      <button 
+                        className="text-green-600 hover:text-green-800 text-sm font-medium flex items-center gap-1"
+                        onClick={() => navigate(`/campanhas/${campaign.id}/progresso`, { state: { fromDashboard: true } })}
+                      >
+                        <FiBarChart2 size={14} />
+                        Progresso
+                      </button>
+                      <button 
+                        className="text-purple-600 hover:text-purple-800 text-sm font-medium flex items-center gap-1"
+                        onClick={() => navigate(`/briefing/editar/${campaign.id}`, { state: { fromDashboard: true } })}
+                      >
+                        <FiEdit size={14} />
+                        Editar
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

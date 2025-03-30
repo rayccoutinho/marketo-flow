@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useForm, Controller, useFieldArray } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 import { 
   Box, 
   Typography, 
@@ -22,7 +23,9 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemIcon
+  ListItemIcon,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -56,6 +59,7 @@ type Attachment = {
 };
 
 type FormValues = {
+  id?: string;
   campaignName: string;
   campaignType: string;
   objective: string;
@@ -86,6 +90,8 @@ type FormValues = {
     reviewStages: string[];
   };
   attachments: Attachment[];
+  status?: string;
+  createdAt?: string;
 };
 
 // Constantes
@@ -134,12 +140,14 @@ const teamMembers = [
 ];
 
 const CampaignBriefing = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
   const [expandedSections, setExpandedSections] = useState<Record<ExpandableSections, boolean>>({
     contentPlan: true,
     approvalWorkflow: true,
     attachments: true
   });
+  const [openSnackbar, setOpenSnackbar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { control, handleSubmit, formState: { errors }, watch, setValue } = useForm<FormValues>({
@@ -173,7 +181,8 @@ const CampaignBriefing = () => {
         targetProgress: 20,
         reviewStages: ['Rascunho', 'Revisão', 'Aprovação', 'Publicação']
       },
-      attachments: []
+      attachments: [],
+      status: 'draft'
     }
   });
 
@@ -195,8 +204,25 @@ const CampaignBriefing = () => {
   };
 
   const onSubmit = (data: FormValues) => {
-    console.log('Dados do briefing:', data);
-    alert('Briefing enviado com sucesso!');
+    try {
+      const campaigns = JSON.parse(localStorage.getItem('campaigns') || '[]');
+      const newCampaign = { 
+        ...data, 
+        id: Date.now().toString(),
+        status: 'draft',
+        createdAt: new Date().toISOString()
+      };
+      campaigns.push(newCampaign);
+      localStorage.setItem('campaigns', JSON.stringify(campaigns));
+      setOpenSnackbar(true);
+      setTimeout(() => navigate('/dashboard'), 1500);
+    } catch (error) {
+      console.error('Erro ao salvar briefing:', error);
+    }
+  };
+
+  const handleCloseSnackbar = () => {
+    setOpenSnackbar(false);
   };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -1024,6 +1050,17 @@ const CampaignBriefing = () => {
           </Grid>
         </form>
       </Box>
+
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
+          Briefing salvo com sucesso!
+        </Alert>
+      </Snackbar>
     </LocalizationProvider>
   );
 };
