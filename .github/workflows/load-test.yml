@@ -4,7 +4,7 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
     inputs:
-      env:
+      target_env:
         description: "Ambiente alvo"
         required: true
         default: "staging"
@@ -13,23 +13,18 @@ on:
           - staging
           - production
 
-permissions:
-  contents: read
-  actions: write
-  checks: write
+env:
+  API_BASE_PATH: "/api/v1"
+  API_URL_STAGING: "https://staging.marketoflow.com"
+  API_URL_PRODUCTION: "https://api.marketoflow.com"
 
 jobs:
   performance-test:
-    name: Teste de Carga - ${{ inputs.env || 'staging' }}
+    name: Teste de Carga - ${{ inputs.target_env || 'staging' }}
     runs-on: ubuntu-latest
     container:
       image: grafana/k6
       options: --user root
-
-    env:
-      API_URL: ${{ inputs.env == 'production' && 'https://api.marketoflow.com' || 'https://staging.marketoflow.com' }}
-      API_TOKEN: ${{ secrets.API_TOKEN }}
-      K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
 
     steps:
       - name: Baixar código
@@ -39,20 +34,39 @@ jobs:
         run: |
           mkdir -p /tmp/results
           chmod 777 /tmp/results
+          
+          if [ "${{ inputs.target_env }}" = "production" ]; then
+            echo "API_URL=$API_URL_PRODUCTION$API_BASE_PATH" >> $GITHUB_ENV
+          else
+            echo "API_URL=$API_URL_STAGING$API_BASE_PATH" >> $GITHUB_ENV
+          fi
+
+          # Configura o K6_CLOUD_TOKEN apenas se existir
+          if [ -n "${{ secrets.K6_CLOUD_TOKEN }}" ]; then
+            echo "K6_CLOUD_TOKEN=${{ secrets.K6_CLOUD_TOKEN }}" >> $GITHUB_ENV
+            echo "K6_CLOUD_ENABLED=true" >> $GITHUB_ENV
+          else
+            echo "K6_CLOUD_ENABLED=false" >> $GITHUB_ENV
+          fi
 
       - name: Executar teste
         run: |
+          CLOUD_FLAG=""
+          if [ "$K6_CLOUD_ENABLED" = "true" ]; then
+            CLOUD_FLAG="--out cloud"
+          fi
+
           k6 run tests/performance/loadTest.js \
             --env API_URL="$API_URL" \
-            --env API_TOKEN="$API_TOKEN" \
-            --vus ${{ inputs.env == 'production' && '200' || '100' }} \
-            --duration ${{ inputs.env == 'production' && '10m' || '5m' }} \
-            ${{ env.K6_CLOUD_TOKEN && '--out cloud' || '' }} \
+            --env API_TOKEN="${{ secrets.API_TOKEN }}" \
+            --vus ${{ inputs.target_env == 'production' && '200' || '100' }} \
+            --duration ${{ inputs.target_env == 'production' && '10m' || '5m' }} \
+            $CLOUD_FLAG \
             --out json=/tmp/results/test_results.json \
             --summary-export=/tmp/results/summary.json
 
       - name: Enviar resultados
         uses: actions/upload-artifact@v4
         with:
-          name: resultados-teste
+          name: resultados-${{ inputs.target_env || 'staging' }}
           path: /tmp/results/*
