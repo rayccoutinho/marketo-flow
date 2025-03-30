@@ -14,14 +14,14 @@ import {
   FiMail,
   FiPhone,
   FiSearch,
-  FiFileText,
-  FiMessageSquare,
-  FiAward
+  FiEye,
+  FiHeart,
+  FiShare2,
+  FiMessageSquare
 } from 'react-icons/fi';
-import BudgetAllocationChart from '../components/BudgetAllocationChart';
-import PerformanceTrendChart from '../components/PerformanceTrendChart';
-import ChannelPerformanceChart from '../components/ChannelPerformanceChart';
-import CampaignTypeDistribution from '../components/CampaignTypeDistribution';
+import BudgetPieChart from '../components/BudgetPieChart';
+import PerformanceLineChart from '../components/PerformanceLineChart';
+import ChannelBreakdownChart from '../components/ChannelBreakdownChart';
 
 interface MetricCardProps {
   icon: React.ReactNode;
@@ -40,7 +40,9 @@ const MetricCard = ({ icon, title, value, change, colorClass }: MetricCardProps)
       <div>
         <div className={`${colorClass.includes('indigo') ? 'text-indigo-400' : 
                         colorClass.includes('green') ? 'text-green-400' :
-                        colorClass.includes('purple') ? 'text-purple-400' : 'text-blue-400'} mb-3`}>
+                        colorClass.includes('purple') ? 'text-purple-400' : 
+                        colorClass.includes('blue') ? 'text-blue-400' :
+                        colorClass.includes('pink') ? 'text-pink-400' : 'text-yellow-400'} mb-3`}>
           {icon}
         </div>
         <h3 className="text-sm font-medium text-gray-300">{title}</h3>
@@ -56,10 +58,9 @@ const MetricCard = ({ icon, title, value, change, colorClass }: MetricCardProps)
 interface AlertCardProps {
   type: 'warning' | 'success' | 'info';
   message: string;
-  action?: () => void;
 }
 
-const AlertCard = ({ type, message, action }: AlertCardProps) => {
+const AlertCard = ({ type, message }: AlertCardProps) => {
   const icon = {
     warning: <FiAlertTriangle className="text-yellow-400" size={20} />,
     success: <FiCheckCircle className="text-green-400" size={20} />,
@@ -75,17 +76,7 @@ const AlertCard = ({ type, message, action }: AlertCardProps) => {
   return (
     <div className={`flex items-start gap-3 p-4 rounded-lg ${bgColor} border`}>
       <div className="mt-0.5">{icon}</div>
-      <div className="flex-1">
-        <p className="text-sm text-gray-200">{message}</p>
-        {action && (
-          <button 
-            onClick={action}
-            className="mt-2 text-xs font-medium text-indigo-400 hover:text-indigo-300"
-          >
-            Ver detalhes
-          </button>
-        )}
-      </div>
+      <p className="text-sm text-gray-200">{message}</p>
     </div>
   );
 };
@@ -94,135 +85,169 @@ export default function MarketingDashboard() {
   const [activeTab, setActiveTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Dados de exemplo para campanhas integradas
+  // Dados de exemplo ampliados para marketing geral
   const campaignData = [
     { 
-      id: 1,
-      name: 'Black Friday 2024',
-      type: 'integrated', // pago + orgânico
-      status: 'active',
-      channels: ['meta', 'email', 'organic_social'],
+      id: 1, 
+      name: 'Black Friday 2024', 
+      status: 'active', 
+      channel: 'paid',
+      type: 'promocional',
       budget: 15000,
-      spent: 8200,
-      contentProduced: 8,
-      engagementRate: 3.2,
-      roas: 4.1,
-      leads: 1240,
-      conversions: 420,
+      spent: 9800,
+      reach: 125000,
+      engagements: 18420,
+      clicks: 9240,
+      impressions: 250210,
+      ctr: 3.7,
+      roas: 4.2,
+      conversions: 1420,
+      leads: 820,
       startDate: '2024-11-20',
-      endDate: '2024-11-30',
-      briefingStatus: 'approved'
+      endDate: '2024-11-30'
     },
     { 
-      id: 2,
-      name: 'Brand Awareness - Verão',
+      id: 2, 
+      name: 'Lançamento de Verão', 
+      status: 'paused', 
+      channel: 'organic',
       type: 'branding',
-      status: 'active',
-      channels: ['organic_social', 'pr', 'influencers'],
       budget: 8000,
-      spent: 3500,
-      contentProduced: 15,
-      engagementRate: 4.8,
-      roas: null, // não aplicável
-      leads: 320,
-      conversions: null,
+      spent: 3200,
+      reach: 85000,
+      engagements: 12400,
+      clicks: 4200,
+      impressions: 180000,
+      ctr: 2.3,
+      roas: 2.1,
+      conversions: 610,
+      leads: 420,
       startDate: '2024-12-01',
-      endDate: '2024-12-31',
-      briefingStatus: 'approved'
+      endDate: '2024-12-31'
     },
     { 
-      id: 3,
-      name: 'Geração de Leads - Imóveis',
-      type: 'leadgen',
-      status: 'active',
-      channels: ['google', 'landing_pages', 'email'],
+      id: 3, 
+      name: 'Lead Gen - Imóveis', 
+      status: 'active', 
+      channel: 'email',
+      type: 'conversão',
       budget: 12000,
-      spent: 6500,
-      contentProduced: 5,
-      engagementRate: 2.1,
-      roas: 3.5,
-      leads: 932,
-      conversions: 320,
+      spent: 8950,
+      reach: 45000,
+      engagements: 8932,
+      clicks: 3932,
+      impressions: 98000,
+      ctr: 4.0,
+      roas: 5.1,
+      conversions: 1320,
+      leads: 920,
       startDate: '2024-10-15',
-      endDate: '2024-11-15',
-      briefingStatus: 'changes_requested'
+      endDate: '2024-11-15'
     },
     { 
-      id: 4,
-      name: 'Natal 2024 - Institucional',
-      type: 'institutional',
-      status: 'planned',
-      channels: ['meta', 'email', 'organic_social', 'website'],
+      id: 4, 
+      name: 'Natal 2024', 
+      status: 'completed', 
+      channel: 'paid',
+      type: 'promocional',
       budget: 20000,
-      spent: 0,
-      contentProduced: 0,
-      engagementRate: null,
-      roas: null,
-      leads: null,
-      conversions: null,
+      spent: 19500,
+      reach: 185000,
+      engagements: 32100,
+      clicks: 12100,
+      impressions: 285000,
+      ctr: 4.2,
+      roas: 4.8,
+      conversions: 2680,
+      leads: 1580,
       startDate: '2024-12-01',
-      endDate: '2024-12-26',
-      briefingStatus: 'pending'
+      endDate: '2024-12-26'
+    },
+    { 
+      id: 5, 
+      name: 'Webinar - Investimentos', 
+      status: 'active', 
+      channel: 'content',
+      type: 'educacional',
+      budget: 5000,
+      spent: 3200,
+      reach: 35000,
+      engagements: 8200,
+      clicks: 2200,
+      impressions: 75000,
+      ctr: 2.9,
+      roas: 3.2,
+      conversions: 420,
+      leads: 320,
+      startDate: '2024-11-01',
+      endDate: '2024-11-30'
     }
   ];
 
   // Filtrar campanhas
   const filteredCampaigns = campaignData.filter(campaign => {
     const matchesSearch = campaign.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTab = activeTab === 'all' || campaign.type === activeTab;
+    const matchesTab = activeTab === 'all' || campaign.channel === activeTab;
     return matchesSearch && matchesTab;
   });
 
-  // Métricas calculadas
+  // Métricas calculadas ampliadas
   const totalBudget = campaignData.reduce((sum, item) => sum + item.budget, 0);
-  const totalSpent = campaignData.reduce((sum, item) => sum + (item.spent || 0), 0);
+  const totalSpent = campaignData.reduce((sum, item) => sum + item.spent, 0);
   const activeCampaigns = campaignData.filter(item => item.status === 'active').length;
-  const avgEngagement = campaignData.reduce((sum, item) => sum + (item.engagementRate || 0), 0) / 
-                      campaignData.filter(item => item.engagementRate).length;
-  const avgROAS = campaignData.reduce((sum, item) => sum + (item.roas || 0), 0) / 
-                 campaignData.filter(item => item.roas).length;
-  const totalLeads = campaignData.reduce((sum, item) => sum + (item.leads || 0), 0);
-  const totalContent = campaignData.reduce((sum, item) => sum + (item.contentProduced || 0), 0);
+  const totalReach = campaignData.reduce((sum, item) => sum + item.reach, 0);
+  const totalEngagements = campaignData.reduce((sum, item) => sum + item.engagements, 0);
+  const totalLeads = campaignData.reduce((sum, item) => sum + item.leads, 0);
+  const avgCTR = campaignData.reduce((sum, item) => sum + item.ctr, 0) / campaignData.length;
+  const avgROAS = campaignData.reduce((sum, item) => sum + item.roas, 0) / campaignData.length;
+  const totalConversions = campaignData.reduce((sum, item) => sum + item.conversions, 0);
+  const conversionRate = (totalConversions / campaignData.reduce((sum, item) => sum + item.clicks, 0)) * 100;
+  const engagementRate = (totalEngagements / campaignData.reduce((sum, item) => sum + item.reach, 0)) * 100;
 
-  // Dados para gráficos
-  const budgetData = [
-    { name: 'Tráfego Pago', value: 45, color: '#6366f1' },
-    { name: 'Conteúdo', value: 30, color: '#8b5cf6' },
-    { name: 'Produção', value: 15, color: '#ec4899' },
-    { name: 'Outros', value: 10, color: '#f59e0b' }
+  // Dados para gráficos atualizados
+  const pieData = [
+    { name: 'Ativas', value: campaignData.filter(c => c.status === 'active').length, color: '#6366f1' },
+    { name: 'Pausadas', value: campaignData.filter(c => c.status === 'paused').length, color: '#8b5cf6' },
+    { name: 'Concluídas', value: campaignData.filter(c => c.status === 'completed').length, color: '#ec4899' }
   ];
 
   const performanceData = [
-    { name: 'Jan', engagement: 2.8, roas: 2.5, leads: 320 },
-    { name: 'Fev', engagement: 3.1, roas: 2.8, leads: 380 },
-    { name: 'Mar', engagement: 3.3, roas: 3.1, leads: 420 },
-    { name: 'Abr', engagement: 3.5, roas: 3.3, leads: 450 },
-    { name: 'Mai', engagement: 3.7, roas: 3.6, leads: 490 },
-    { name: 'Jun', engagement: 3.9, roas: 3.8, leads: 520 }
+    { name: 'Jan', ctr: 1.8, roas: 2.5, conversions: 320, engagements: 4200, reach: 85000 },
+    { name: 'Fev', ctr: 2.1, roas: 2.8, conversions: 380, engagements: 5200, reach: 92000 },
+    { name: 'Mar', ctr: 2.3, roas: 3.1, conversions: 420, engagements: 6800, reach: 105000 },
+    { name: 'Abr', ctr: 2.5, roas: 3.3, conversions: 450, engagements: 7200, reach: 115000 },
+    { name: 'Mai', ctr: 2.7, roas: 3.6, conversions: 490, engagements: 8200, reach: 125000 },
+    { name: 'Jun', ctr: 2.9, roas: 3.8, conversions: 520, engagements: 9200, reach: 135000 }
+  ];
+
+  const channelData = [
+    { name: 'Tráfego Pago', value: 45, color: '#4267B2' },
+    { name: 'Orgânico', value: 25, color: '#34A853' },
+    { name: 'Email', value: 15, color: '#EA4335' },
+    { name: 'Conteúdo', value: 10, color: '#FBBC05' },
+    { name: 'Parcerias', value: 5, color: '#673AB7' }
   ];
 
   const campaignTypeData = [
-    { name: 'Institucional', value: 35, color: '#3b82f6' },
-    { name: 'E-commerce', value: 25, color: '#6366f1' },
-    { name: 'Geração de Leads', value: 20, color: '#8b5cf6' },
-    { name: 'Branding', value: 15, color: '#ec4899' },
-    { name: 'Outros', value: 5, color: '#f59e0b' }
+    { name: 'Promocional', value: 40, color: '#6366f1' },
+    { name: 'Branding', value: 25, color: '#8b5cf6' },
+    { name: 'Conversão', value: 20, color: '#ec4899' },
+    { name: 'Educacional', value: 15, color: '#f59e0b' }
   ];
 
-  // Alertas automatizados
+  // Alertas automatizados atualizados
   const alerts = [
     {
       type: 'success' as const,
-      message: 'Campanha "Black Friday" com ROAS 25% acima da média (4.1x vs 3.3x)'
+      message: 'Campanha "Black Friday 2024" com ROAS 40% acima da média (4.2x vs 3.0x)'
     },
     {
       type: 'warning' as const,
-      message: 'Briefing para "Natal 2024" pendente de aprovação há 3 dias'
+      message: 'Aumentar orçamento em "Lead Gen - Imóveis" - apenas 25% do orçamento restante'
     },
     {
       type: 'info' as const,
-      message: 'Campanha de Branding com engajamento 40% acima da média',
-      action: () => setActiveTab('branding')
+      message: 'Webinar "Investimentos" com alta taxa de engajamento (23.4%)'
     }
   ];
 
@@ -234,8 +259,8 @@ export default function MarketingDashboard() {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
         >
-          <h1 className="text-3xl font-bold text-white">Marketing Dashboard</h1>
-          <p className="text-gray-400">Visão integrada de todas as campanhas e canais</p>
+          <h1 className="text-3xl font-bold text-white">Dashboard de Marketing</h1>
+          <p className="text-gray-400">Visão geral de todas as suas campanhas de marketing</p>
         </motion.div>
         
         <motion.button
@@ -257,46 +282,46 @@ export default function MarketingDashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
-            <AlertCard type={alert.type} message={alert.message} action={alert.action} />
+            <AlertCard type={alert.type} message={alert.message} />
           </motion.div>
         ))}
       </div>
 
-      {/* Metric Cards - Foco em Marketing Integrado */}
+      {/* Metric Cards - Atualizadas para marketing geral */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
         <MetricCard
           icon={<FiDollarSign size={20} />}
           title="Orçamento Total"
-          value={`R$ ${totalBudget.toLocaleString('pt-BR')}`}
+          value={`R$ ${(totalBudget / 1000).toFixed(1)}k`}
           change={5.2}
           colorClass="from-indigo-900/20 to-indigo-800/20 border-indigo-800"
         />
         <MetricCard
-          icon={<FiTrendingUp size={20} />}
-          title="Engajamento Médio"
-          value={`${avgEngagement.toFixed(1)}%`}
-          change={8.7}
-          colorClass="from-green-900/20 to-green-800/20 border-green-800"
-        />
-        <MetricCard
           icon={<FiUsers size={20} />}
-          title="Leads Gerados"
-          value={totalLeads.toLocaleString('pt-BR')}
-          change={12.4}
-          colorClass="from-purple-900/20 to-purple-800/20 border-purple-800"
+          title="Alcance Total"
+          value={`${(totalReach / 1000).toFixed(1)}k`}
+          change={12.7}
+          colorClass="from-blue-900/20 to-blue-800/20 border-blue-800"
         />
         <MetricCard
-          icon={<FiFileText size={20} />}
-          title="Conteúdos Produzidos"
-          value={totalContent.toString()}
+          icon={<FiHeart size={20} />}
+          title="Engajamentos"
+          value={`${(totalEngagements / 1000).toFixed(1)}k`}
+          change={8.4}
+          colorClass="from-pink-900/20 to-pink-800/20 border-pink-800"
+        />
+        <MetricCard
+          icon={<FiTrendingUp size={20} />}
+          title="Leads Gerados"
+          value={totalLeads.toString()}
           change={15.1}
-          colorClass="from-blue-900/20 to-blue-800/20 border-blue-800"
+          colorClass="from-green-900/20 to-green-800/20 border-green-800"
         />
       </div>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8">
-        {/* Alocação de Orçamento */}
+      {/* Charts Section - Ampliada */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
+        {/* Budget Allocation */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -306,7 +331,7 @@ export default function MarketingDashboard() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <FiPieChart className="text-indigo-400" size={20} />
-              <h2 className="text-lg font-semibold text-white">Alocação de Orçamento</h2>
+              <h2 className="text-lg font-semibold text-white">Status das Campanhas</h2>
             </div>
             <select className="bg-gray-700/50 text-sm text-gray-300 px-3 py-1 rounded-lg border border-gray-600">
               <option>Últimos 30 dias</option>
@@ -315,11 +340,11 @@ export default function MarketingDashboard() {
             </select>
           </div>
           <div className="h-64">
-            <BudgetAllocationChart data={budgetData} />
+            <BudgetPieChart data={pieData} />
           </div>
         </motion.div>
 
-        {/* Performance Mensal */}
+        {/* Performance Trend */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -333,19 +358,16 @@ export default function MarketingDashboard() {
             </div>
             <div className="flex gap-2">
               <button className="px-3 py-1 bg-gray-700 text-gray-300 text-sm rounded-lg">Engajamento</button>
-              <button className="px-3 py-1 bg-gray-700 text-gray-300 text-sm rounded-lg">Leads</button>
+              <button className="px-3 py-1 bg-gray-700 text-gray-300 text-sm rounded-lg">Conversões</button>
               <button className="px-3 py-1 bg-indigo-600 text-white text-sm rounded-lg">ROAS</button>
             </div>
           </div>
           <div className="h-64">
-            <PerformanceTrendChart data={performanceData} />
+            <PerformanceLineChart data={performanceData} />
           </div>
         </motion.div>
-      </div>
 
-      {/* Tipos de Campanha e Canais */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8">
-        {/* Distribuição por Tipo */}
+        {/* Channel Breakdown */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -354,8 +376,8 @@ export default function MarketingDashboard() {
         >
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <FiAward className="text-purple-400" size={20} />
-              <h2 className="text-lg font-semibold text-white">Tipos de Campanha</h2>
+              <FiGrid className="text-purple-400" size={20} />
+              <h2 className="text-lg font-semibold text-white">Distribuição por Canal</h2>
             </div>
             <select className="bg-gray-700/50 text-sm text-gray-300 px-3 py-1 rounded-lg border border-gray-600">
               <option>Últimos 30 dias</option>
@@ -364,46 +386,55 @@ export default function MarketingDashboard() {
             </select>
           </div>
           <div className="h-64">
-            <CampaignTypeDistribution data={campaignTypeData} />
-          </div>
-        </motion.div>
-
-        {/* Performance por Canal */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="bg-gray-800/50 p-6 rounded-2xl border border-gray-700/50 backdrop-blur-sm"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <FiGrid className="text-blue-400" size={20} />
-              <h2 className="text-lg font-semibold text-white">Performance por Canal</h2>
-            </div>
-            <select className="bg-gray-700/50 text-sm text-gray-300 px-3 py-1 rounded-lg border border-gray-600">
-              <option>Últimos 30 dias</option>
-              <option>Este mês</option>
-              <option>Personalizado</option>
-            </select>
-          </div>
-          <div className="h-64">
-            <ChannelPerformanceChart data={performanceData} />
+            <ChannelBreakdownChart data={channelData} />
           </div>
         </motion.div>
       </div>
 
-      {/* Lista de Campanhas */}
+      {/* Additional Marketing Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+        <MetricCard
+          icon={<FiEye size={20} />}
+          title="Taxa de CTR"
+          value={`${avgCTR.toFixed(2)}%`}
+          change={2.4}
+          colorClass="from-purple-900/20 to-purple-800/20 border-purple-800"
+        />
+        <MetricCard
+          icon={<FiMessageSquare size={20} />}
+          title="Taxa de Engajamento"
+          value={`${engagementRate.toFixed(2)}%`}
+          change={5.8}
+          colorClass="from-yellow-900/20 to-yellow-800/20 border-yellow-800"
+        />
+        <MetricCard
+          icon={<FiShare2 size={20} />}
+          title="ROAS Médio"
+          value={`${avgROAS.toFixed(1)}x`}
+          change={3.1}
+          colorClass="from-green-900/20 to-green-800/20 border-green-800"
+        />
+        <MetricCard
+          icon={<FiCheckCircle size={20} />}
+          title="Taxa de Conversão"
+          value={`${conversionRate.toFixed(1)}%`}
+          change={8.1}
+          colorClass="from-blue-900/20 to-blue-800/20 border-blue-800"
+        />
+      </div>
+
+      {/* Campaigns Table */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
+        transition={{ delay: 0.4 }}
         className="bg-gray-800/50 p-6 rounded-2xl border border-gray-700/50 backdrop-blur-sm"
       >
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
           <h2 className="text-lg font-semibold text-white">Todas as Campanhas</h2>
           
           <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
-            {/* Filtros por tipo */}
+            {/* Filtros por canal */}
             <div className="flex rounded-lg bg-gray-700/50 p-1 border border-gray-600">
               <button 
                 className={`px-3 py-1 text-sm rounded-md ${activeTab === 'all' ? 'bg-indigo-600 text-white' : 'text-gray-300'}`}
@@ -412,22 +443,28 @@ export default function MarketingDashboard() {
                 Todos
               </button>
               <button 
-                className={`px-3 py-1 text-sm rounded-md ${activeTab === 'institutional' ? 'bg-indigo-600 text-white' : 'text-gray-300'}`}
-                onClick={() => setActiveTab('institutional')}
+                className={`px-3 py-1 text-sm rounded-md ${activeTab === 'paid' ? 'bg-indigo-600 text-white' : 'text-gray-300'}`}
+                onClick={() => setActiveTab('paid')}
               >
-                <FiMessageSquare className="inline mr-1" size={16} /> Institucional
+                <FiDollarSign className="inline mr-1" size={16} /> Pago
               </button>
               <button 
-                className={`px-3 py-1 text-sm rounded-md ${activeTab === 'leadgen' ? 'bg-indigo-600 text-white' : 'text-gray-300'}`}
-                onClick={() => setActiveTab('leadgen')}
+                className={`px-3 py-1 text-sm rounded-md ${activeTab === 'organic' ? 'bg-indigo-600 text-white' : 'text-gray-300'}`}
+                onClick={() => setActiveTab('organic')}
               >
-                <FiUsers className="inline mr-1" size={16} /> Leads
+                <FiTrendingUp className="inline mr-1" size={16} /> Orgânico
               </button>
               <button 
-                className={`px-3 py-1 text-sm rounded-md ${activeTab === 'branding' ? 'bg-indigo-600 text-white' : 'text-gray-300'}`}
-                onClick={() => setActiveTab('branding')}
+                className={`px-3 py-1 text-sm rounded-md ${activeTab === 'email' ? 'bg-indigo-600 text-white' : 'text-gray-300'}`}
+                onClick={() => setActiveTab('email')}
               >
-                <FiAward className="inline mr-1" size={16} /> Branding
+                <FiMail className="inline mr-1" size={16} /> Email
+              </button>
+              <button 
+                className={`px-3 py-1 text-sm rounded-md ${activeTab === 'content' ? 'bg-indigo-600 text-white' : 'text-gray-300'}`}
+                onClick={() => setActiveTab('content')}
+              >
+                <FiMessageSquare className="inline mr-1" size={16} /> Conteúdo
               </button>
             </div>
             
@@ -451,12 +488,12 @@ export default function MarketingDashboard() {
               <tr className="text-left text-gray-400 text-sm border-b border-gray-700">
                 <th className="pb-3 pl-2">Campanha</th>
                 <th className="pb-3">Tipo</th>
+                <th className="pb-3">Canal</th>
                 <th className="pb-3">Status</th>
-                <th className="pb-3">Briefing</th>
-                <th className="pb-3">Orçamento</th>
+                <th className="pb-3">Alcance</th>
                 <th className="pb-3">Engajamento</th>
                 <th className="pb-3">Leads</th>
-                <th className="pb-3">Conteúdos</th>
+                <th className="pb-3">ROAS</th>
                 <th className="pb-3 pr-2">Ações</th>
               </tr>
             </thead>
@@ -471,44 +508,41 @@ export default function MarketingDashboard() {
                   </td>
                   <td>
                     <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs ${
-                      campaign.type === 'institutional' ? 'bg-blue-900/30 text-blue-400' :
-                      campaign.type === 'leadgen' ? 'bg-purple-900/30 text-purple-400' :
-                      campaign.type === 'branding' ? 'bg-pink-900/30 text-pink-400' :
-                      'bg-indigo-900/30 text-indigo-400'
+                      campaign.type === 'promocional' ? 'bg-purple-900/30 text-purple-400' :
+                      campaign.type === 'branding' ? 'bg-blue-900/30 text-blue-400' :
+                      campaign.type === 'conversão' ? 'bg-green-900/30 text-green-400' :
+                      'bg-yellow-900/30 text-yellow-400'
                     }`}>
-                      {campaign.type === 'institutional' ? 'Institucional' : 
-                       campaign.type === 'leadgen' ? 'Geração de Leads' :
-                       campaign.type === 'branding' ? 'Branding' : 'Integrada'}
+                      {campaign.type === 'promocional' ? 'Promocional' : 
+                       campaign.type === 'branding' ? 'Branding' : 
+                       campaign.type === 'conversão' ? 'Conversão' : 'Educacional'}
+                    </span>
+                  </td>
+                  <td>
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs ${
+                      campaign.channel === 'paid' ? 'bg-indigo-900/30 text-indigo-400' :
+                      campaign.channel === 'organic' ? 'bg-green-900/30 text-green-400' :
+                      campaign.channel === 'email' ? 'bg-red-900/30 text-red-400' :
+                      'bg-yellow-900/30 text-yellow-400'
+                    }`}>
+                      {campaign.channel === 'paid' ? 'Tráfego Pago' : 
+                       campaign.channel === 'organic' ? 'Orgânico' : 
+                       campaign.channel === 'email' ? 'Email' : 'Conteúdo'}
                     </span>
                   </td>
                   <td>
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       campaign.status === 'active' ? 'bg-green-900/30 text-green-400' :
                       campaign.status === 'paused' ? 'bg-yellow-900/30 text-yellow-400' :
-                      campaign.status === 'planned' ? 'bg-gray-700 text-gray-400' :
-                      'bg-gray-800 text-gray-300'
+                      'bg-gray-700 text-gray-400'
                     }`}>
-                      {campaign.status === 'active' ? 'Ativa' : 
-                       campaign.status === 'paused' ? 'Pausada' :
-                       campaign.status === 'planned' ? 'Planejada' : 'Concluída'}
+                      {campaign.status === 'active' ? 'Ativa' : campaign.status === 'paused' ? 'Pausada' : 'Concluída'}
                     </span>
                   </td>
-                  <td>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      campaign.briefingStatus === 'approved' ? 'bg-green-900/30 text-green-400' :
-                      campaign.briefingStatus === 'pending' ? 'bg-blue-900/30 text-blue-400' :
-                      'bg-yellow-900/30 text-yellow-400'
-                    }`}>
-                      {campaign.briefingStatus === 'approved' ? 'Aprovado' : 
-                       campaign.briefingStatus === 'pending' ? 'Pendente' : 'Alterações'}
-                    </span>
-                  </td>
-                  <td className="text-white">R$ {campaign.budget.toLocaleString('pt-BR')}</td>
-                  <td className={`${campaign.engagementRate && campaign.engagementRate > 3 ? 'text-green-400' : 'text-yellow-400'}`}>
-                    {campaign.engagementRate ? `${campaign.engagementRate}%` : '-'}
-                  </td>
-                  <td className="text-white">{campaign.leads ? campaign.leads.toLocaleString('pt-BR') : '-'}</td>
-                  <td className="text-white">{campaign.contentProduced || '-'}</td>
+                  <td className="text-white">{(campaign.reach / 1000).toFixed(1)}k</td>
+                  <td className="text-white">{(campaign.engagements / 1000).toFixed(1)}k</td>
+                  <td className="text-white">{campaign.leads}</td>
+                  <td className={`${campaign.roas > 3 ? 'text-green-400' : 'text-yellow-400'}`}>{campaign.roas.toFixed(1)}x</td>
                   <td className="pr-2">
                     <button className="text-indigo-400 hover:text-indigo-300 text-sm font-medium">
                       Detalhes
