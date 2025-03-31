@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { Outlet, Link, useLocation, useNavigate, LinkProps } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Box, 
   List, 
   ListItem, 
   ListItemButton, 
-  ListItemButtonProps,
   ListItemIcon, 
   ListItemText, 
   Divider,
@@ -17,7 +16,8 @@ import {
   MenuItem,
   Typography,
   styled,
-  useTheme
+  useTheme,
+  ListItemButtonProps
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -29,7 +29,9 @@ import {
   Widgets as TemplatesIcon,
   Link as IntegrationsIcon,
   List as ListIcon,
-  Insights as InsightsIcon
+  Insights as InsightsIcon,
+  History as HistoryIcon,
+  Notifications as AlertsIcon
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
@@ -93,6 +95,7 @@ const Layout = ({ onLogout, children }: LayoutProps) => {
       items: [
         { text: 'Nova Campanha', icon: <CampaignIcon />, path: '/briefing/novo' },
         { text: 'Lista de Campanhas', icon: <ListIcon />, path: '/campanhas' },
+        { text: 'Histórico', icon: <HistoryIcon />, path: '/campaign-history' },
         { text: 'Progresso', icon: <CampaignIcon />, path: '/campanhas/progresso' },
       ]
     },
@@ -100,6 +103,7 @@ const Layout = ({ onLogout, children }: LayoutProps) => {
       subheader: 'Análises',
       items: [
         { text: 'Insights', icon: <InsightsIcon />, path: '/insights' },
+        { text: 'Alertas', icon: <AlertsIcon />, path: '/alerts' },
         { text: 'Relatórios', icon: <ReportsIcon />, path: '/reports' },
       ]
     },

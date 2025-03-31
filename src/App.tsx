@@ -7,12 +7,16 @@ import CampaignBriefing from './pages/CampaignBriefing';
 import CampaignDetails from './pages/CampaignDetails';
 import EditBriefing from './pages/EditBriefing';
 import ContentProgressPage from './pages/ContentProgressPage';
-import InsightsPage from './pages/Insights/InsightsPage'; // Added new Insights page
 import Layout from './components/Layout';
-import IntegrationSettings from './integrations/IntegrationSettings'; // Caminho corrigido
-import CustomReports from './reports/CustomReports'; // Caminho corrigido
-import TemplatesPage from './pages/TemplatesLibrary'; // Added Templates page
-import PriorityInsights from './pages/Insights/components/PriorityInsights'; // Added PriorityInsights
+import IntegrationSettings from './integrations/IntegrationSettings';
+import CustomReports from './reports/CustomReports';
+import TemplatesPage from './pages/TemplatesLibrary';
+
+// Importações das novas features
+import InsightsPage from './features/Insights/InsightsPage';
+import PriorityInsights from './features/Insights/components/PriorityInsights';
+import CampaignHistoryPage from './features/CampaignHistory/CampaignHistoryPage';
+import AlertsPage from './features/Alerts/AlertsPage';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -21,10 +25,8 @@ function App() {
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
-    // Simulate token validation
     const validateToken = async () => {
       try {
-        // In a real app, you would verify the token with your backend
         setIsAuthenticated(!!token);
       } catch (error) {
         console.error('Token validation failed:', error);
@@ -141,14 +143,34 @@ function App() {
                 <Navigate to="/login" replace />
             } 
           />
-<Route 
-  path="/insights/priority" 
-  element={
-    isAuthenticated ? 
-      <PriorityInsights insights={[]} /> : // Passando array vazio como valor inicial
-      <Navigate to="/login" replace />
-  } 
-/>
+          <Route 
+            path="/insights/priority" 
+            element={
+              isAuthenticated ? 
+                <PriorityInsights insights={[]} /> : 
+                <Navigate to="/login" replace />
+            } 
+          />
+
+          {/* Campaign History Route */}
+          <Route 
+            path="/campaign-history" 
+            element={
+              isAuthenticated ? 
+                <CampaignHistoryPage /> : 
+                <Navigate to="/login" replace />
+            } 
+          />
+
+          {/* Alerts Route */}
+          <Route 
+            path="/alerts" 
+            element={
+              isAuthenticated ? 
+                <AlertsPage /> : 
+                <Navigate to="/login" replace />
+            } 
+          />
 
           {/* Integration Routes */}
           <Route 
