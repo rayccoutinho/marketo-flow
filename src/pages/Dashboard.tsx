@@ -464,10 +464,7 @@ export default function MarketingDashboard() {
                         className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
                         onClick={(e) => {
                           e.preventDefault();
-                          navigate(`/campanhas/${campaign.id}`, { 
-                            state: { campaign },
-                            replace: true
-                          });
+                          navigate(`/campanhas/${campaign.id}`);
                         }}
                       >
                         <FiEye size={14} />
@@ -477,10 +474,7 @@ export default function MarketingDashboard() {
                         className="text-green-600 hover:text-green-800 text-sm font-medium flex items-center gap-1"
                         onClick={(e) => {
                           e.preventDefault();
-                          navigate(`/campanhas/${campaign.id}/progresso`, { 
-                            state: { fromDashboard: true },
-                            replace: true
-                          });
+                          navigate(`/campanhas/${campaign.id}/progresso`);
                         }}
                       >
                         <FiBarChart2 size={14} />
@@ -490,10 +484,7 @@ export default function MarketingDashboard() {
                         className="text-purple-600 hover:text-purple-800 text-sm font-medium flex items-center gap-1"
                         onClick={(e) => {
                           e.preventDefault();
-                          navigate(`/briefing/editar/${campaign.id}`, { 
-                            state: { fromDashboard: true },
-                            replace: true
-                          });
+                          navigate(`/campanhas/${campaign.id}/editar`);
                         }}
                       >
                         <FiEdit size={14} />

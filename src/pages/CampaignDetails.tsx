@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Box, 
   Typography, 
@@ -94,6 +94,7 @@ interface Campaign {
 const CampaignDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
@@ -112,6 +113,14 @@ const CampaignDetails = () => {
 
     const loadCampaign = () => {
       try {
+        // Check if coming from dashboard with state
+        if (location.state?.campaign) {
+          setCampaign(location.state.campaign);
+          setLoading(false);
+          return;
+        }
+
+        // Otherwise load from localStorage
         const savedCampaigns = JSON.parse(localStorage.getItem('campaigns') || '[]');
         const foundCampaign = savedCampaigns.find((c: Campaign) => c.id === id);
         
@@ -125,6 +134,7 @@ const CampaignDetails = () => {
           return;
         }
 
+        // Initialize missing fields
         if (!foundCampaign.contentPlan?.items) {
           foundCampaign.contentPlan = { items: [] };
         }
@@ -150,7 +160,7 @@ const CampaignDetails = () => {
     };
 
     loadCampaign();
-  }, [id, navigate]);
+  }, [id, navigate, location.state]);
 
   const handleCloseSnackbar = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
@@ -209,10 +219,7 @@ const CampaignDetails = () => {
     <Box sx={{ p: 3 }}>
       <Button 
         startIcon={<FiArrowLeft />} 
-        onClick={(e) => {
-          e.preventDefault();
-          navigate('/dashboard');
-        }}
+        onClick={() => navigate('/dashboard')}
         sx={{ mb: 3 }}
         variant="outlined"
       >
@@ -552,10 +559,7 @@ const CampaignDetails = () => {
         }}>
           <Button
             variant="outlined"
-            onClick={(e) => {
-              e.preventDefault();
-              navigate(`/briefing/editar/${campaign.id}`);
-            }}
+            onClick={() => navigate(`/campanhas/${campaign.id}/editar`)}
             startIcon={<FiEdit />}
             disabled={campaign.status === 'completed'}
             sx={{ 
@@ -569,10 +573,7 @@ const CampaignDetails = () => {
           </Button>
           <Button
             variant="contained"
-            onClick={(e) => {
-              e.preventDefault();
-              navigate(`/campanha/${campaign.id}/progresso`);
-            }}
+            onClick={() => navigate(`/campanhas/${campaign.id}/progresso`)}
             startIcon={<FiBarChart2 />}
           >
             Ver Progresso

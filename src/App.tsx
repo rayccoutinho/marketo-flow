@@ -9,6 +9,10 @@ import EditBriefing from './pages/EditBriefing';
 import ContentProgressPage from './pages/ContentProgressPage';
 import Layout from './components/Layout';
 
+// Importações com caminhos corrigidos
+import IntegrationSettings from './integrations/IntegrationSettings';
+import CustomReports from './reports/CustomReports';
+
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -16,26 +20,20 @@ function App() {
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
-    const isAuth = !!token;
-    setIsAuthenticated(isAuth);
+    setIsAuthenticated(!!token);
     setIsLoading(false);
-    
-    if (!isAuth && window.location.pathname !== '/login') {
-      navigate('/login', { replace: true });
-    }
-  }, [navigate]);
+  }, []);
 
   const handleLogin = () => {
     localStorage.setItem('authToken', 'valid-token');
     setIsAuthenticated(true);
-    navigate('/dashboard', { replace: true });
+    navigate('/dashboard');
   };
 
   const handleLogout = () => {
     localStorage.removeItem('authToken');
-    localStorage.removeItem('userData');
     setIsAuthenticated(false);
-    navigate('/login', { replace: true });
+    navigate('/login');
   };
 
   if (isLoading) {
@@ -54,124 +52,69 @@ function App() {
   return (
     <Box sx={{ 
       height: '100vh', 
-      bgcolor: '#f5f7fb',
-      display: 'flex',
-      flexDirection: 'column'
+      bgcolor: '#f5f7fb', 
+      display: 'flex', 
+      flexDirection: 'column' 
     }}>
       <Routes>
-        {/* Rotas públicas */}
-        <Route 
-          path="/login" 
-          element={
-            isAuthenticated ? 
-              <Navigate to="/dashboard" replace /> : 
-              <Login onLogin={handleLogin} />
-          } 
+        <Route path="/login" 
+          element={isAuthenticated ? 
+            <Navigate to="/dashboard" /> : 
+            <Login onLogin={handleLogin} />} 
         />
         
-        {/* Redirecionamentos */}
-        <Route 
-          path="/" 
+        <Route path="/" 
           element={
-            isAuthenticated ? 
-              <Navigate to="/dashboard" replace /> : 
-              <Navigate to="/login" replace />
+            <Navigate to={isAuthenticated ? "/dashboard" : "/login"} />
           } 
         />
-        
-        {/* Rotas protegidas */}
+
         <Route element={<Layout onLogout={handleLogout} />}>
-          <Route 
-            path="/dashboard" 
-            element={
-              isAuthenticated ? 
-                <Dashboard /> : 
-                <Navigate to="/login" replace />
-            } 
-          />
-          
-          <Route 
-            path="/briefing/novo" 
-            element={
-              isAuthenticated ? 
-                <CampaignBriefing /> : 
-                <Navigate to="/login" replace />
-            } 
-          />
-          
-          <Route 
-            path="/campanhas/:id" 
-            element={
-              isAuthenticated ? 
-                <CampaignDetails /> : 
-                <Navigate to="/login" replace />
-            } 
-          />
-          
-          <Route 
-            path="/campanhas/:id/editar" 
-            element={
-              isAuthenticated ? 
-                <EditBriefing /> : 
-                <Navigate to="/login" replace />
-            } 
-          />
-          
-          <Route 
-            path="/campanhas/:id/progresso" 
-            element={
-              isAuthenticated ? 
-                <ContentProgressPage /> : 
-                <Navigate to="/login" replace />
-            } 
+          <Route path="/dashboard" 
+            element={isAuthenticated ? 
+              <Dashboard /> : 
+              <Navigate to="/login" />} 
           />
 
-          <Route 
-            path="/briefing/:id" 
-            element={
-              isAuthenticated ? 
-                <CampaignDetails /> : 
-                <Navigate to="/login" replace />
-            } 
+          <Route path="/briefing/novo" 
+            element={isAuthenticated ? 
+              <CampaignBriefing /> : 
+              <Navigate to="/login" />} 
           />
-          
-          <Route 
-            path="/briefing/editar/:id" 
-            element={
-              isAuthenticated ? 
-                <EditBriefing /> : 
-                <Navigate to="/login" replace />
-            } 
+          <Route path="/campanhas/:id" 
+            element={isAuthenticated ? 
+              <CampaignDetails /> : 
+              <Navigate to="/login" />} 
           />
-          
-          <Route 
-            path="/campanha/:id/progresso" 
-            element={
-              isAuthenticated ? 
-                <ContentProgressPage /> : 
-                <Navigate to="/login" replace />
-            } 
+          <Route path="/campanhas/:id/editar" 
+            element={isAuthenticated ? 
+              <EditBriefing /> : 
+              <Navigate to="/login" />} 
+          />
+          <Route path="/campanhas/:id/progresso" 
+            element={isAuthenticated ? 
+              <ContentProgressPage /> : 
+              <Navigate to="/login" />} 
           />
 
-          <Route 
-            path="/relatorios" 
+          {/* Rotas com caminhos definitivos */}
+          <Route path="/integrations" 
+            element={isAuthenticated ? 
+              <IntegrationSettings /> : 
+              <Navigate to="/login" />} 
+          />
+          <Route path="/reports" 
+            element={isAuthenticated ? 
+              <CustomReports /> : 
+              <Navigate to="/login" />} 
+          />
+
+          <Route path="*" 
             element={
-              isAuthenticated ? 
-                <Navigate to="/dashboard" replace /> : 
-                <Navigate to="/login" replace />
+              <Navigate to={isAuthenticated ? "/dashboard" : "/login"} />
             } 
           />
         </Route>
-
-        {/* Fallback para rotas não encontradas */}
-        <Route 
-          path="*" 
-          element={
-            isAuthenticated ? 
-              <Navigate to="/dashboard" replace /> : 
-              <Navigate to="/login" replace />
-          } 
-        />
       </Routes>
     </Box>
   );

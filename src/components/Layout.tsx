@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Box, 
@@ -15,25 +15,90 @@ import {
   Menu,
   MenuItem,
   IconButton,
-  Typography
+  Typography,
+  styled
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
   Campaign as CampaignIcon,
   ExitToApp as LogoutIcon,
-  AccountCircle as AccountIcon
+  AccountCircle as AccountIcon,
+  Settings as SettingsIcon,
+  Assessment as ReportsIcon,
+  Widgets as TemplatesIcon,
+  Link as IntegrationsIcon,
+  List as ListIcon
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
+
+type MenuItemType = {
+  text: string;
+  icon: React.ReactNode;
+  path: string;
+};
+
+type MenuGroupType = {
+  subheader: string;
+  items: MenuItemType[];
+};
 
 type LayoutProps = {
   onLogout: () => void;
 };
 
+// Definindo tipos para o ListItemButton estilizado
+type StyledListItemButtonProps = {
+  selected?: boolean;
+  to: string;
+  component?: typeof Link;
+};
+
+const StyledListItemButton = styled(ListItemButton, {
+  shouldForwardProp: (prop) => prop !== 'selected',
+})<StyledListItemButtonProps>(({ theme, selected }) => ({
+  borderRadius: theme.shape.borderRadius,
+  margin: theme.spacing(0.5, 1),
+  ...(selected && {
+    backgroundColor: theme.palette.action.selected,
+    color: theme.palette.primary.main,
+    '& .MuiListItemIcon-root': {
+      color: theme.palette.primary.main,
+    },
+  }),
+  '&:hover': {
+    backgroundColor: theme.palette.action.hover,
+  },
+}));
+
 const Layout = ({ onLogout }: LayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  const menuGroups: MenuGroupType[] = [
+    {
+      subheader: 'Principal',
+      items: [
+        { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
+      ]
+    },
+    {
+      subheader: 'Campanhas',
+      items: [
+        { text: 'Nova Campanha', icon: <CampaignIcon />, path: '/briefing/novo' },
+        { text: 'Lista de Campanhas', icon: <ListIcon />, path: '/campanhas' },
+      ]
+    },
+    {
+      subheader: 'Ferramentas',
+      items: [
+        { text: 'Templates', icon: <TemplatesIcon />, path: '/templates' },
+        { text: 'Integrações', icon: <IntegrationsIcon />, path: '/integrations' },
+        { text: 'Relatórios', icon: <ReportsIcon />, path: '/reports' },
+      ]
+    }
+  ];
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -49,15 +114,11 @@ const Layout = ({ onLogout }: LayoutProps) => {
     navigate('/login');
   };
 
-  const menuItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-    { text: 'Nova Campanha', icon: <CampaignIcon />, path: '/briefing/novo' },
-  ];
-
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       <CssBaseline />
       
+      {/* Sidebar */}
       <Box
         component="nav"
         sx={{ 
@@ -67,7 +128,9 @@ const Layout = ({ onLogout }: LayoutProps) => {
           borderRight: '1px solid',
           borderColor: 'divider',
           height: '100vh',
-          position: 'fixed'
+          position: 'fixed',
+          display: 'flex',
+          flexDirection: 'column'
         }}
       >
         <Toolbar sx={{ justifyContent: 'center' }}>
@@ -77,41 +140,47 @@ const Layout = ({ onLogout }: LayoutProps) => {
         </Toolbar>
         <Divider />
         
-        <List>
-          <ListSubheader sx={{ bgcolor: 'inherit' }}>Menu</ListSubheader>
-          {menuItems.map((item) => (
-            <ListItem 
-              key={item.text} 
-              disablePadding
-              sx={{
-                bgcolor: location.pathname === item.path ? 'action.selected' : 'inherit'
-              }}
-            >
-              <ListItemButton 
-                component={Link} 
-                to={item.path}
-                selected={location.pathname === item.path}
-              >
-                <ListItemIcon sx={{ color: 'inherit' }}>
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText primary={item.text} />
-              </ListItemButton>
-            </ListItem>
+        {/* Menu Items */}
+        <Box sx={{ flexGrow: 1, overflowY: 'auto', p: 1 }}>
+          {menuGroups.map((group, index) => (
+            <React.Fragment key={index}>
+              <ListSubheader sx={{ bgcolor: 'inherit' }}>
+                {group.subheader}
+              </ListSubheader>
+              <List>
+                {group.items.map((item) => (
+                  <ListItem key={item.text} disablePadding>
+                    <StyledListItemButton 
+                      component={Link}
+                      to={item.path}
+                      selected={location.pathname.startsWith(item.path)}
+                    >
+                      <ListItemIcon>
+                        {item.icon}
+                      </ListItemIcon>
+                      <ListItemText primary={item.text} />
+                    </StyledListItemButton>
+                  </ListItem>
+                ))}
+              </List>
+              {index < menuGroups.length - 1 && <Divider sx={{ my: 1 }} />}
+            </React.Fragment>
           ))}
-        </List>
+        </Box>
         
-        <Box sx={{ mt: 'auto', p: 2 }}>
+        {/* User Section */}
+        <Box sx={{ p: 2 }}>
           <Divider />
-          <ListItemButton onClick={handleLogoutClick}>
-            <ListItemIcon>
-              <LogoutIcon />
-            </ListItemIcon>
-            <ListItemText primary="Sair" />
+          <ListItemButton onClick={handleMenuOpen}>
+            <Avatar sx={{ mr: 2 }}>
+              <AccountIcon />
+            </Avatar>
+            <ListItemText primary="Minha Conta" secondary="Administrador" />
           </ListItemButton>
         </Box>
       </Box>
 
+      {/* Main Content */}
       <Box
         component="main"
         sx={{
@@ -122,34 +191,6 @@ const Layout = ({ onLogout }: LayoutProps) => {
         }}
       >
         <Toolbar />
-        
-        <Box 
-          sx={{ 
-            display: 'flex', 
-            justifyContent: 'flex-end',
-            mb: 3
-          }}
-        >
-          <IconButton onClick={handleMenuOpen}>
-            <Avatar>
-              <AccountIcon />
-            </Avatar>
-          </IconButton>
-          
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
-          >
-            <MenuItem onClick={handleLogoutClick}>
-              <ListItemIcon>
-                <LogoutIcon fontSize="small" />
-              </ListItemIcon>
-              Sair
-            </MenuItem>
-          </Menu>
-        </Box>
-        
         <Outlet />
       </Box>
     </Box>

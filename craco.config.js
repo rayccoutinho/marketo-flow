@@ -8,33 +8,16 @@ module.exports = {
     },
   },
   webpack: {
-    configure: (webpackConfig, { env, paths }) => {
-      // Configuração para suportar o React Router
+    configure: (webpackConfig) => {
       webpackConfig.devServer = {
         ...webpackConfig.devServer,
-        historyApiFallback: {
-          disableDotRule: true,
-          index: '/',
-        },
+        historyApiFallback: true,
         hot: true,
-        open: true,
-        port: 3000,
+        client: {
+          overlay: false,
+        },
       };
-
-      // Adiciona fallback para arquivos estáticos
-      webpackConfig.output = {
-        ...webpackConfig.output,
-        publicPath: '/',
-      };
-
       return webpackConfig;
-    }
-  },
-  jest: {
-    configure: {
-      moduleNameMapper: {
-        '^@/(.*)$': '<rootDir>/src/$1'
-      }
     }
   }
 }
