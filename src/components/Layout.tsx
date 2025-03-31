@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate, LinkProps } from 'react-router-dom';
 import { 
   Box, 
   List, 
   ListItem, 
   ListItemButton, 
+  ListItemButtonProps,
   ListItemIcon, 
   ListItemText, 
   Divider,
@@ -14,9 +15,9 @@ import {
   Avatar,
   Menu,
   MenuItem,
-  IconButton,
   Typography,
-  styled
+  styled,
+  useTheme
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -27,7 +28,8 @@ import {
   Assessment as ReportsIcon,
   Widgets as TemplatesIcon,
   Link as IntegrationsIcon,
-  List as ListIcon
+  List as ListIcon,
+  Insights as InsightsIcon
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
@@ -36,6 +38,7 @@ type MenuItemType = {
   text: string;
   icon: React.ReactNode;
   path: string;
+  matchExact?: boolean;
 };
 
 type MenuGroupType = {
@@ -45,18 +48,18 @@ type MenuGroupType = {
 
 type LayoutProps = {
   onLogout: () => void;
+  children?: React.ReactNode;
 };
 
-// Definindo tipos para o ListItemButton estilizado
-type StyledListItemButtonProps = {
+interface CustomListItemButtonProps extends ListItemButtonProps {
+  component?: React.ElementType;
+  to?: string;
   selected?: boolean;
-  to: string;
-  component?: typeof Link;
-};
+}
 
 const StyledListItemButton = styled(ListItemButton, {
   shouldForwardProp: (prop) => prop !== 'selected',
-})<StyledListItemButtonProps>(({ theme, selected }) => ({
+})<CustomListItemButtonProps>(({ theme, selected }) => ({
   borderRadius: theme.shape.borderRadius,
   margin: theme.spacing(0.5, 1),
   ...(selected && {
@@ -71,16 +74,18 @@ const StyledListItemButton = styled(ListItemButton, {
   },
 }));
 
-const Layout = ({ onLogout }: LayoutProps) => {
+const Layout = ({ onLogout, children }: LayoutProps) => {
+  const theme = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
 
   const menuGroups: MenuGroupType[] = [
     {
       subheader: 'Principal',
       items: [
-        { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
+        { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard', matchExact: true },
       ]
     },
     {
@@ -88,14 +93,21 @@ const Layout = ({ onLogout }: LayoutProps) => {
       items: [
         { text: 'Nova Campanha', icon: <CampaignIcon />, path: '/briefing/novo' },
         { text: 'Lista de Campanhas', icon: <ListIcon />, path: '/campanhas' },
+        { text: 'Progresso', icon: <CampaignIcon />, path: '/campanhas/progresso' },
       ]
     },
     {
-      subheader: 'Ferramentas',
+      subheader: 'Análises',
+      items: [
+        { text: 'Insights', icon: <InsightsIcon />, path: '/insights' },
+        { text: 'Relatórios', icon: <ReportsIcon />, path: '/reports' },
+      ]
+    },
+    {
+      subheader: 'Configurações',
       items: [
         { text: 'Templates', icon: <TemplatesIcon />, path: '/templates' },
         { text: 'Integrações', icon: <IntegrationsIcon />, path: '/integrations' },
-        { text: 'Relatórios', icon: <ReportsIcon />, path: '/reports' },
       ]
     }
   ];
@@ -111,7 +123,12 @@ const Layout = ({ onLogout }: LayoutProps) => {
   const handleLogoutClick = () => {
     handleMenuClose();
     onLogout();
-    navigate('/login');
+  };
+
+  const isItemSelected = (item: MenuItemType) => {
+    return item.matchExact 
+      ? location.pathname === item.path
+      : location.pathname.startsWith(item.path);
   };
 
   return (
@@ -133,8 +150,8 @@ const Layout = ({ onLogout }: LayoutProps) => {
           flexDirection: 'column'
         }}
       >
-        <Toolbar sx={{ justifyContent: 'center' }}>
-          <Typography variant="h6" noWrap>
+        <Toolbar sx={{ justifyContent: 'center', py: 2 }}>
+          <Typography variant="h6" noWrap component="div">
             Marketo Flow
           </Typography>
         </Toolbar>
@@ -144,21 +161,30 @@ const Layout = ({ onLogout }: LayoutProps) => {
         <Box sx={{ flexGrow: 1, overflowY: 'auto', p: 1 }}>
           {menuGroups.map((group, index) => (
             <React.Fragment key={index}>
-              <ListSubheader sx={{ bgcolor: 'inherit' }}>
+              <ListSubheader 
+                sx={{ 
+                  bgcolor: 'inherit',
+                  color: theme.palette.text.secondary,
+                  fontWeight: 'medium'
+                }}
+              >
                 {group.subheader}
               </ListSubheader>
-              <List>
+              <List disablePadding>
                 {group.items.map((item) => (
                   <ListItem key={item.text} disablePadding>
                     <StyledListItemButton 
                       component={Link}
                       to={item.path}
-                      selected={location.pathname.startsWith(item.path)}
+                      selected={isItemSelected(item)}
                     >
-                      <ListItemIcon>
+                      <ListItemIcon sx={{ minWidth: 40 }}>
                         {item.icon}
                       </ListItemIcon>
-                      <ListItemText primary={item.text} />
+                      <ListItemText 
+                        primary={item.text} 
+                        primaryTypographyProps={{ variant: 'body2' }}
+                      />
                     </StyledListItemButton>
                   </ListItem>
                 ))}
@@ -169,14 +195,62 @@ const Layout = ({ onLogout }: LayoutProps) => {
         </Box>
         
         {/* User Section */}
-        <Box sx={{ p: 2 }}>
-          <Divider />
-          <ListItemButton onClick={handleMenuOpen}>
-            <Avatar sx={{ mr: 2 }}>
-              <AccountIcon />
+        <Box sx={{ p: 2, bgcolor: 'background.default' }}>
+          <Divider sx={{ mb: 2 }} />
+          <ListItemButton 
+            onClick={handleMenuOpen}
+            sx={{
+              borderRadius: theme.shape.borderRadius,
+              '&:hover': {
+                backgroundColor: theme.palette.action.hover,
+              },
+            }}
+          >
+            <Avatar sx={{ 
+              mr: 2,
+              bgcolor: theme.palette.primary.main,
+              width: 32,
+              height: 32
+            }}>
+              <AccountIcon fontSize="small" />
             </Avatar>
-            <ListItemText primary="Minha Conta" secondary="Administrador" />
+            <ListItemText 
+              primary="Minha Conta" 
+              secondary="Administrador"
+              primaryTypographyProps={{ variant: 'body2', fontWeight: 'medium' }}
+              secondaryTypographyProps={{ variant: 'caption' }}
+            />
           </ListItemButton>
+
+          <Menu
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleMenuClose}
+            anchorOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+            transformOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
+            }}
+          >
+            <MenuItem onClick={() => {
+              handleMenuClose();
+              navigate('/settings');
+            }}>
+              <ListItemIcon>
+                <SettingsIcon fontSize="small" />
+              </ListItemIcon>
+              Configurações
+            </MenuItem>
+            <MenuItem onClick={handleLogoutClick}>
+              <ListItemIcon>
+                <LogoutIcon fontSize="small" />
+              </ListItemIcon>
+              Sair
+            </MenuItem>
+          </Menu>
         </Box>
       </Box>
 
@@ -187,11 +261,13 @@ const Layout = ({ onLogout }: LayoutProps) => {
           flexGrow: 1,
           p: 3,
           width: { sm: `calc(100% - ${drawerWidth}px)` },
-          ml: { sm: `${drawerWidth}px` }
+          ml: { sm: `${drawerWidth}px` },
+          bgcolor: 'background.default',
+          minHeight: '100vh'
         }}
       >
         <Toolbar />
-        <Outlet />
+        {children || <Outlet />}
       </Box>
     </Box>
   );

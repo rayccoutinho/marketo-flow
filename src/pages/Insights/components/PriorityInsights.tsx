@@ -1,11 +1,12 @@
 import { FiAlertTriangle, FiTrendingUp } from 'react-icons/fi';
-import InsightCard, { Insight } from './InsightCard';
+import InsightCard from './InsightCard';
+import { Insight } from '@/types/insight';
 
 interface PriorityInsightsProps {
   insights: Insight[];
 }
 
-export default function PriorityInsights({ insights }: PriorityInsightsProps) {
+export default function PriorityInsights({ insights = [] }: PriorityInsightsProps) {
   const criticalInsights = insights.filter(i => i.priority === 'critical');
   const highInsights = insights.filter(i => i.priority === 'high');
 

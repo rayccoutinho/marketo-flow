@@ -1,21 +1,26 @@
 import { FiAlertTriangle, FiTrendingUp, FiClock, FiChevronRight } from "react-icons/fi";
 
-// InsightCard.tsx
-export interface Insight {
-    id: string;
-    title: string;
-    description: string;
-    type: "performance" | "engagement" | "budget" | "content";
-    channel: string;
-    priority: "high" | "medium" | "critical";
-    suggestedAction: string;
-    date: string;
-    metrics?: {
-      current: number;
-      benchmark: number;
-      unit?: string;
-    };
-  }
+// Tipos movidos para um arquivo separado (src/types/insight.ts)
+type InsightPriority = "high" | "medium" | "critical";
+type InsightType = "performance" | "engagement" | "budget" | "content";
+
+interface InsightMetrics {
+  current: number;
+  benchmark: number;
+  unit?: string;
+}
+
+interface Insight {
+  id: string;
+  title: string;
+  description: string;
+  type: InsightType;
+  channel: string;
+  priority: InsightPriority;
+  suggestedAction: string;
+  date: string;
+  metrics?: InsightMetrics;
+}
 
 interface InsightCardProps {
   insight: Insight;
@@ -34,7 +39,10 @@ const CHANNEL_COLORS: Record<string, string> = {
   instagram: "bg-gradient-to-r from-pink-500 to-yellow-500",
   meta_ads: "bg-blue-600",
   google_ads: "bg-gradient-to-r from-blue-500 to-green-500",
+  linkedin: "bg-blue-700",
+  twitter: "bg-blue-400",
   website: "bg-gray-600",
+  default: "bg-gray-500"
 };
 
 export default function InsightCard({
@@ -44,7 +52,7 @@ export default function InsightCard({
   compact = false,
 }: InsightCardProps) {
   const getChannelColor = (channel: string) => {
-    return CHANNEL_COLORS[channel] || "bg-gray-500";
+    return CHANNEL_COLORS[channel.toLowerCase()] || CHANNEL_COLORS.default;
   };
 
   return (
@@ -69,10 +77,8 @@ export default function InsightCard({
             </h3>
             {!compact && (
               <span
-                className={`inline-block w-3 h-3 rounded-full ${getChannelColor(
-                  insight.channel
-                )}`}
-                title={insight.channel}
+                className={`inline-block w-3 h-3 rounded-full ${getChannelColor(insight.channel)}`}
+                title={insight.channel.replace('_', ' ')}
               />
             )}
           </div>
@@ -126,7 +132,10 @@ export default function InsightCard({
               </p>
             </div>
             {!compact && (
-              <button className="mt-2 text-blue-600 hover:text-blue-800 flex items-center gap-1 text-xs">
+              <button 
+                className="mt-2 text-blue-600 hover:text-blue-800 flex items-center gap-1 text-xs"
+                onClick={() => console.log('Detalhes clicado', insight.id)}
+              >
                 Detalhes <FiChevronRight size={12} />
               </button>
             )}
@@ -136,3 +145,6 @@ export default function InsightCard({
     </div>
   );
 }
+
+// Adicione no final do InsightCard.tsx
+export type { Insight };

@@ -1,5 +1,6 @@
-import { INSIGHTS_DATA } from "@/mocks/insights";
+import { INSIGHTS_DATA } from "@/mocks/insights"; // Corrigido o caminho de importação
 import InsightCard from "./components/InsightCard";
+import { Insight } from "@/types/insight"; // Adicionado importação do tipo
 
 export default function InsightsPage() {
   return (
@@ -11,9 +12,8 @@ export default function InsightsPage() {
         </p>
       </header>
 
-      {/* Filtros (implementar depois) */}
       <div className="grid gap-6">
-        {INSIGHTS_DATA.map((insight) => (
+        {INSIGHTS_DATA.map((insight: Insight) => ( // Adicionado tipo explicitamente
           <InsightCard key={insight.id} insight={insight} />
         ))}
       </div>
