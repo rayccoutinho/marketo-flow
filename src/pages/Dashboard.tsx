@@ -244,7 +244,10 @@ export default function MarketingDashboard() {
           
           <button 
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-            onClick={() => navigate('/briefing/novo')}
+            onClick={(e) => {
+              e.preventDefault();
+              navigate('/briefing/novo');
+            }}
           >
             <FiPlus size={18} />
             Nova Campanha
@@ -459,21 +462,39 @@ export default function MarketingDashboard() {
                     <div className="flex gap-2">
                       <button 
                         className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
-                        onClick={() => navigate(`/campanhas/${campaign.id}`, { state: { fromDashboard: true } })}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          navigate(`/campanhas/${campaign.id}`, { 
+                            state: { campaign },
+                            replace: true
+                          });
+                        }}
                       >
                         <FiEye size={14} />
                         Detalhes
                       </button>
                       <button 
                         className="text-green-600 hover:text-green-800 text-sm font-medium flex items-center gap-1"
-                        onClick={() => navigate(`/campanhas/${campaign.id}/progresso`, { state: { fromDashboard: true } })}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          navigate(`/campanhas/${campaign.id}/progresso`, { 
+                            state: { fromDashboard: true },
+                            replace: true
+                          });
+                        }}
                       >
                         <FiBarChart2 size={14} />
                         Progresso
                       </button>
                       <button 
                         className="text-purple-600 hover:text-purple-800 text-sm font-medium flex items-center gap-1"
-                        onClick={() => navigate(`/briefing/editar/${campaign.id}`, { state: { fromDashboard: true } })}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          navigate(`/briefing/editar/${campaign.id}`, { 
+                            state: { fromDashboard: true },
+                            replace: true
+                          });
+                        }}
                       >
                         <FiEdit size={14} />
                         Editar

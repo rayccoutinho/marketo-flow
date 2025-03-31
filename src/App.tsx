@@ -20,7 +20,6 @@ function App() {
     setIsAuthenticated(isAuth);
     setIsLoading(false);
     
-    // Redireciona para login se não estiver autenticado
     if (!isAuth && window.location.pathname !== '/login') {
       navigate('/login', { replace: true });
     }
