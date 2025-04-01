@@ -17,20 +17,16 @@ import {
   TableRow,
   LinearProgress,
   styled,
-  useTheme,
-  Skeleton
+  useTheme
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
   Campaign as CampaignIcon,
-  BarChart as BarChartIcon,
-  PieChart as PieChartIcon,
-  Layers as LayersIcon,
-  AttachMoney as MoneyIcon,
   Add as AddIcon,
   Search as SearchIcon,
   Visibility as VisibilityIcon,
   Edit as EditIcon,
+  BarChart as BarChartIcon,
   Warning as WarningIcon,
   CheckCircle as CheckCircleIcon,
   AccessTime as TimeIcon,
@@ -42,39 +38,29 @@ import CampaignProgressChart from '../components/CampaignProgressChart';
 import ContentStatusChart from '../components/ContentStatusChart';
 import TaskCompletionChart from '../components/TaskCompletionChart';
 
-// Componentes estilizados
-const GlassPaper = styled(Box)(({ theme }) => ({
-  backdropFilter: 'blur(16px)',
-  WebkitBackdropFilter: 'blur(16px)',
-  backgroundColor: 'rgba(255, 255, 255, 0.7)',
-  border: '1px solid rgba(255, 255, 255, 0.2)',
-  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
-  borderRadius: '12px',
-  padding: theme.spacing(3),
-  marginBottom: theme.spacing(3),
+// Componentes estilizados modernizados
+const DashboardCard = styled(Box)(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  borderRadius: '16px',
+  boxShadow: theme.shadows[2],
+  overflow: 'hidden',
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    boxShadow: theme.shadows[6],
+    transform: 'translateY(-2px)'
+  }
 }));
 
 const MetricCard = styled(Box)(({ theme }) => ({
   padding: theme.spacing(3),
-  borderRadius: '12px',
-  border: '1px solid rgba(0, 0, 0, 0.08)',
-  backgroundColor: 'rgba(255, 255, 255, 0.6)',
-  transition: 'all 0.2s ease',
+  borderRadius: '16px',
+  backgroundColor: theme.palette.background.paper,
+  boxShadow: theme.shadows[1],
+  transition: 'all 0.3s ease',
   '&:hover': {
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-  },
-}));
-
-const AlertHeader = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  padding: theme.spacing(2),
-  cursor: 'pointer',
-  '&:hover': {
-    backgroundColor: 'rgba(0, 0, 0, 0.02)',
-  },
+    transform: 'translateY(-5px)',
+    boxShadow: theme.shadows[4]
+  }
 }));
 
 // Tipos de dados
@@ -85,7 +71,7 @@ interface Campaign {
   progress: number;
   pendingTasks: number;
   overdueTasks: number;
-  channel: string;
+  channel: 'paid' | 'organic';
   type: string;
   budget: number;
   spent: number;
@@ -93,7 +79,7 @@ interface Campaign {
   endDate: string;
   briefingStatus: 'approved' | 'pending' | 'draft';
   contentItems: Array<{
-    status: string;
+    status: 'published' | 'approved' | 'in_progress' | 'not_started';
     count: number;
   }>;
 }
@@ -111,28 +97,27 @@ const MarketingDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [alertsExpanded, setAlertsExpanded] = useState(true);
   const [dismissedAlerts, setDismissedAlerts] = useState<string[]>([]);
-  const [isLoading] = useState(false);
 
-  // Dados de exemplo
+  // Dados de exemplo atualizados
   const campaignData: Campaign[] = [
     { 
       id: '1',
       name: 'Black Friday 2024', 
       status: 'active',
-      progress: 65,
-      pendingTasks: 3,
-      overdueTasks: 1,
+      progress: 78,
+      pendingTasks: 2,
+      overdueTasks: 0,
       channel: 'paid',
-      type: 'promocional',
-      budget: 15000,
-      spent: 9800,
+      type: 'Promocional',
+      budget: 25000,
+      spent: 18500,
       startDate: '2024-11-20',
       endDate: '2024-11-30',
       briefingStatus: 'approved',
       contentItems: [
-        { status: 'published', count: 5 },
-        { status: 'approved', count: 3 },
-        { status: 'in_progress', count: 2 },
+        { status: 'published', count: 8 },
+        { status: 'approved', count: 4 },
+        { status: 'in_progress', count: 3 },
         { status: 'not_started', count: 1 }
       ]
     },
@@ -140,50 +125,28 @@ const MarketingDashboard = () => {
       id: '2', 
       name: 'Natal 2024', 
       status: 'active',
-      progress: 42,
-      pendingTasks: 7,
-      overdueTasks: 2,
+      progress: 65,
+      pendingTasks: 5,
+      overdueTasks: 1,
       channel: 'organic',
-      type: 'branding',
-      budget: 20000,
-      spent: 8500,
+      type: 'Branding',
+      budget: 18000,
+      spent: 12000,
       startDate: '2024-12-01',
       endDate: '2024-12-25',
       briefingStatus: 'approved',
       contentItems: [
-        { status: 'published', count: 3 },
-        { status: 'approved', count: 4 },
-        { status: 'in_progress', count: 5 },
+        { status: 'published', count: 6 },
+        { status: 'approved', count: 5 },
+        { status: 'in_progress', count: 4 },
         { status: 'not_started', count: 2 }
-      ]
-    },
-    { 
-      id: '3', 
-      name: 'Lead Gen - Imóveis', 
-      status: 'paused',
-      progress: 28,
-      pendingTasks: 5,
-      overdueTasks: 3,
-      channel: 'paid',
-      type: 'conversão',
-      budget: 12000,
-      spent: 6500,
-      startDate: '2024-10-15',
-      endDate: '2024-11-15',
-      briefingStatus: 'pending',
-      contentItems: [
-        { status: 'published', count: 2 },
-        { status: 'approved', count: 1 },
-        { status: 'in_progress', count: 3 },
-        { status: 'not_started', count: 4 }
       ]
     }
   ];
 
   const alerts: Alert[] = [
-    { id: 'alert1', type: 'warning', message: '3 tarefas atrasadas na campanha Lead Gen - Imóveis' },
-    { id: 'alert2', type: 'success', message: 'Briefing da campanha Black Friday aprovado' },
-    { id: 'alert3', type: 'info', message: '5 novos conteúdos para revisão no Natal 2024' }
+    { id: 'alert1', type: 'success', message: 'Campanha Black Friday atingiu 78% do progresso' },
+    { id: 'alert2', type: 'info', message: 'Novos conteúdos aprovados para revisão' }
   ];
 
   // Filtros
@@ -232,13 +195,29 @@ const MarketingDashboard = () => {
     <Box sx={{ 
       p: { xs: 2, md: 3 },
       minHeight: '100vh',
-      background: 'radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.05) 0%, transparent 25%), radial-gradient(circle at 90% 80%, rgba(124, 58, 237, 0.05) 0%, transparent 25%)'
+      background: theme.palette.background.default
     }}>
       {/* Cabeçalho */}
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
-        <DashboardIcon sx={{ fontSize: 28, color: 'text.primary', mr: 2 }} />
-        <Typography variant="h4" fontWeight={600}>
-          Dashboard de Marketing
+      <Box sx={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        mb: 4,
+        p: 3,
+        borderRadius: '16px',
+        backgroundColor: theme.palette.background.paper,
+        boxShadow: theme.shadows[1]
+      }}>
+        <DashboardIcon sx={{ 
+          fontSize: 32, 
+          color: theme.palette.primary.main, 
+          mr: 2 
+        }} />
+        <Typography variant="h4" fontWeight={600} sx={{
+          background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent'
+        }}>
+          Marketo Flow Dashboard
         </Typography>
       </Box>
 
@@ -249,7 +228,7 @@ const MarketingDashboard = () => {
         justifyContent: 'space-between',
         alignItems: { sm: 'center' },
         gap: 2,
-        mb: 3
+        mb: 4
       }}>
         <TextField
           placeholder="Buscar campanhas..."
@@ -261,9 +240,10 @@ const MarketingDashboard = () => {
               </InputAdornment>
             ),
             sx: {
-              borderRadius: '8px',
-              backgroundColor: 'rgba(255, 255, 255, 0.8)',
-              width: { xs: '100%', sm: 300 }
+              borderRadius: '12px',
+              backgroundColor: theme.palette.background.paper,
+              width: { xs: '100%', sm: 320 },
+              boxShadow: theme.shadows[1]
             }
           }}
           value={searchTerm}
@@ -274,13 +254,17 @@ const MarketingDashboard = () => {
           startIcon={<AddIcon />}
           onClick={() => navigate('/campaigns/new')}
           sx={{
-            borderRadius: '8px',
+            borderRadius: '12px',
             textTransform: 'none',
-            padding: theme.spacing(1.5, 3),
-            boxShadow: 'none',
+            px: 4,
+            py: 1.5,
+            boxShadow: theme.shadows[2],
+            background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
             '&:hover': {
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-            }
+              boxShadow: theme.shadows[4],
+              transform: 'translateY(-2px)'
+            },
+            transition: 'all 0.3s ease'
           }}
         >
           Nova Campanha
@@ -289,27 +273,28 @@ const MarketingDashboard = () => {
 
       {/* Seção de Alertas */}
       {visibleAlerts.length > 0 && (
-        <GlassPaper sx={{ padding: 0 }}>
-          <AlertHeader onClick={toggleAlerts}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography variant="subtitle1" fontWeight={600}>
-                Alertas ({visibleAlerts.length})
-              </Typography>
+        <DashboardCard sx={{ mb: 4 }}>
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              p: 3,
+              cursor: 'pointer',
+              borderBottom: `1px solid ${theme.palette.divider}`
+            }}
+            onClick={toggleAlerts}
+          >
+            <Typography variant="h6" fontWeight={600}>
+              Alertas ({visibleAlerts.length})
+            </Typography>
+            <IconButton size="small">
               {alertsExpanded ? <ArrowUpIcon /> : <ArrowDownIcon />}
-            </Box>
-            <IconButton 
-              size="small" 
-              onClick={(e) => {
-                e.stopPropagation();
-                setDismissedAlerts(alerts.map(alert => alert.id));
-              }}
-            >
-              <CloseIcon fontSize="small" />
             </IconButton>
-          </AlertHeader>
+          </Box>
           
           <Collapse in={alertsExpanded}>
-            <Box sx={{ p: 2, pt: 0 }}>
+            <Box sx={{ p: 2 }}>
               {visibleAlerts.map((alert) => (
                 <Box 
                   key={alert.id}
@@ -321,25 +306,26 @@ const MarketingDashboard = () => {
                     mb: 1,
                     borderRadius: '8px',
                     backgroundColor: 
-                      alert.type === 'warning' ? 'rgba(234, 179, 8, 0.1)' :
-                      alert.type === 'success' ? 'rgba(16, 185, 129, 0.1)' :
-                      'rgba(59, 130, 246, 0.1)',
+                      alert.type === 'warning' ? 'rgba(255, 193, 7, 0.1)' :
+                      alert.type === 'success' ? 'rgba(76, 175, 80, 0.1)' :
+                      'rgba(33, 150, 243, 0.1)',
                     border: '1px solid',
                     borderColor: 
-                      alert.type === 'warning' ? 'rgba(234, 179, 8, 0.2)' :
-                      alert.type === 'success' ? 'rgba(16, 185, 129, 0.2)' :
-                      'rgba(59, 130, 246, 0.2)'
+                      alert.type === 'warning' ? 'rgba(255, 193, 7, 0.2)' :
+                      alert.type === 'success' ? 'rgba(76, 175, 80, 0.2)' :
+                      'rgba(33, 150, 243, 0.2)'
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     {alert.type === 'warning' && <WarningIcon color="warning" />}
                     {alert.type === 'success' && <CheckCircleIcon color="success" />}
                     {alert.type === 'info' && <TimeIcon color="info" />}
-                    <Typography variant="body2">{alert.message}</Typography>
+                    <Typography variant="body2" fontWeight={500}>{alert.message}</Typography>
                   </Box>
                   <IconButton 
                     size="small" 
                     onClick={() => handleDismissAlert(alert.id)}
+                    sx={{ color: theme.palette.text.secondary }}
                   >
                     <CloseIcon fontSize="small" />
                   </IconButton>
@@ -347,7 +333,7 @@ const MarketingDashboard = () => {
               ))}
             </Box>
           </Collapse>
-        </GlassPaper>
+        </DashboardCard>
       )}
 
       {/* Métricas */}
@@ -355,110 +341,82 @@ const MarketingDashboard = () => {
         display: 'grid', 
         gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', lg: 'repeat(4, 1fr)' }, 
         gap: 3, 
-        mb: 3 
+        mb: 4 
       }}>
         <MetricCard>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Box sx={{ 
               p: 1.5,
-              borderRadius: '8px',
-              backgroundColor: 'rgba(37, 99, 235, 0.1)',
-              color: 'primary.main'
+              borderRadius: '12px',
+              backgroundColor: 'rgba(33, 150, 243, 0.1)',
+              color: theme.palette.primary.main
             }}>
               <CampaignIcon />
             </Box>
             <Box>
               <Typography variant="body2" color="text.secondary">Campanhas Ativas</Typography>
-              <Typography variant="h5" fontWeight={600}>{activeCampaigns}/{totalCampaigns}</Typography>
+              <Typography variant="h4" fontWeight={700}>
+                {activeCampaigns}/{totalCampaigns}
+              </Typography>
             </Box>
           </Box>
-          <Chip 
-            label="↑ 5.2%" 
-            size="small" 
-            sx={{ 
-              mt: 1,
-              backgroundColor: 'rgba(16, 185, 129, 0.1)',
-              color: 'success.main'
-            }} 
-          />
         </MetricCard>
 
         <MetricCard>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Box sx={{ 
               p: 1.5,
-              borderRadius: '8px',
-              backgroundColor: 'rgba(16, 185, 129, 0.1)',
-              color: 'success.main'
+              borderRadius: '12px',
+              backgroundColor: 'rgba(76, 175, 80, 0.1)',
+              color: theme.palette.success.main
             }}>
               <BarChartIcon />
             </Box>
             <Box>
               <Typography variant="body2" color="text.secondary">Progresso Médio</Typography>
-              <Typography variant="h5" fontWeight={600}>{avgProgress}%</Typography>
+              <Typography variant="h4" fontWeight={700}>
+                {avgProgress}%
+              </Typography>
             </Box>
           </Box>
-          <Chip 
-            label="↑ 2.7%" 
-            size="small" 
-            sx={{ 
-              mt: 1,
-              backgroundColor: 'rgba(16, 185, 129, 0.1)',
-              color: 'success.main'
-            }} 
-          />
         </MetricCard>
 
         <MetricCard>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Box sx={{ 
               p: 1.5,
-              borderRadius: '8px',
-              backgroundColor: 'rgba(239, 68, 68, 0.1)',
-              color: 'error.main'
+              borderRadius: '12px',
+              backgroundColor: 'rgba(255, 193, 7, 0.1)',
+              color: theme.palette.warning.main
             }}>
-              <LayersIcon />
+              <BarChartIcon />
             </Box>
             <Box>
               <Typography variant="body2" color="text.secondary">Tarefas Pendentes</Typography>
-              <Typography variant="h5" fontWeight={600}>{totalPendingTasks}</Typography>
+              <Typography variant="h4" fontWeight={700}>
+                {totalPendingTasks}
+              </Typography>
             </Box>
           </Box>
-          <Chip 
-            label="↓ 3.1%" 
-            size="small" 
-            sx={{ 
-              mt: 1,
-              backgroundColor: 'rgba(239, 68, 68, 0.1)',
-              color: 'error.main'
-            }} 
-          />
         </MetricCard>
 
         <MetricCard>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Box sx={{ 
               p: 1.5,
-              borderRadius: '8px',
-              backgroundColor: 'rgba(139, 92, 246, 0.1)',
-              color: 'secondary.main'
+              borderRadius: '12px',
+              backgroundColor: 'rgba(156, 39, 176, 0.1)',
+              color: theme.palette.secondary.main
             }}>
-              <MoneyIcon />
+              <BarChartIcon />
             </Box>
             <Box>
               <Typography variant="body2" color="text.secondary">Orçamento Utilizado</Typography>
-              <Typography variant="h5" fontWeight={600}>{budgetUsage}%</Typography>
+              <Typography variant="h4" fontWeight={700}>
+                {budgetUsage}%
+              </Typography>
             </Box>
           </Box>
-          <Chip 
-            label="↑ 8.4%" 
-            size="small" 
-            sx={{ 
-              mt: 1,
-              backgroundColor: 'rgba(16, 185, 129, 0.1)',
-              color: 'success.main'
-            }} 
-          />
         </MetricCard>
       </Box>
 
@@ -467,124 +425,30 @@ const MarketingDashboard = () => {
         display: 'grid', 
         gridTemplateColumns: { xs: '1fr', lg: 'repeat(3, 1fr)' }, 
         gap: 3, 
-        mb: 3 
+        mb: 4 
       }}>
-        <GlassPaper>
-          <Typography variant="h6" fontWeight={600} gutterBottom>
-            Progresso das Campanhas
-          </Typography>
-          <Box sx={{ height: 240 }}>
-            <CampaignProgressChart campaigns={campaignData} />
-          </Box>
-        </GlassPaper>
-
-        <GlassPaper>
-          <Typography variant="h6" fontWeight={600} gutterBottom>
-            Status de Conteúdo
-          </Typography>
-          <Box sx={{ height: 240 }}>
-            <ContentStatusChart data={contentStatus} />
-          </Box>
-        </GlassPaper>
-
-        <GlassPaper>
-          <Typography variant="h6" fontWeight={600} gutterBottom>
-            Status de Briefing
-          </Typography>
-          <Box sx={{ height: 240 }}>
-            <TaskCompletionChart 
-              approved={briefingStatus.approved} 
-              pending={briefingStatus.pending} 
-              draft={briefingStatus.draft} 
-            />
-          </Box>
-        </GlassPaper>
+        <CampaignProgressChart campaigns={campaignData} />
+        <ContentStatusChart data={contentStatus} />
+        <TaskCompletionChart 
+          approved={briefingStatus.approved} 
+          pending={briefingStatus.pending} 
+          draft={briefingStatus.draft} 
+        />
       </Box>
 
       {/* Tabela de Campanhas */}
-      <GlassPaper>
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          mb: 3,
-          flexDirection: { xs: 'column', sm: 'row' },
-          gap: 2
-        }}>
-          <Typography variant="h6" fontWeight={600}>
-            Todas as Campanhas
-          </Typography>
-          
-          <Box sx={{ 
-            display: 'flex', 
-            gap: 1, 
-            p: 0.5, 
-            borderRadius: '8px',
-            backgroundColor: 'rgba(0, 0, 0, 0.05)'
-          }}>
-            <Button
-              size="small"
-              variant={activeTab === 'all' ? 'contained' : 'text'}
-              onClick={() => setActiveTab('all')}
-              sx={{
-                borderRadius: '6px',
-                textTransform: 'none',
-                minWidth: 80,
-                boxShadow: 'none',
-                '&.MuiButton-contained': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                  color: 'text.primary'
-                }
-              }}
-            >
-              Todos
-            </Button>
-            <Button
-              size="small"
-              variant={activeTab === 'active' ? 'contained' : 'text'}
-              onClick={() => setActiveTab('active')}
-              sx={{
-                borderRadius: '6px',
-                textTransform: 'none',
-                minWidth: 80,
-                boxShadow: 'none',
-                '&.MuiButton-contained': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                  color: 'text.primary'
-                }
-              }}
-            >
-              Ativas
-            </Button>
-            <Button
-              size="small"
-              variant={activeTab === 'paused' ? 'contained' : 'text'}
-              onClick={() => setActiveTab('paused')}
-              sx={{
-                borderRadius: '6px',
-                textTransform: 'none',
-                minWidth: 80,
-                boxShadow: 'none',
-                '&.MuiButton-contained': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                  color: 'text.primary'
-                }
-              }}
-            >
-              Pausadas
-            </Button>
-          </Box>
+      <DashboardCard>
+        <Box sx={{ p: 3, borderBottom: `1px solid ${theme.palette.divider}` }}>
+          <Typography variant="h6" fontWeight={600}>Todas as Campanhas</Typography>
         </Box>
-        
         <TableContainer>
           <Table>
             <TableHead>
               <TableRow sx={{ 
                 '& .MuiTableCell-root': { 
-                  color: 'text.secondary',
+                  backgroundColor: theme.palette.background.paper,
                   fontWeight: 600,
-                  borderBottomColor: 'divider',
-                  backgroundColor: 'rgba(255, 255, 255, 0.5)'
+                  color: theme.palette.text.secondary
                 } 
               }}>
                 <TableCell>Campanha</TableCell>
@@ -604,36 +468,36 @@ const MarketingDashboard = () => {
                   sx={{ 
                     '&:last-child td': { borderBottom: 0 },
                     '& .MuiTableCell-root': { 
-                      borderBottomColor: 'divider',
-                      backgroundColor: 'rgba(255, 255, 255, 0.7)'
+                      borderBottom: `1px solid ${theme.palette.divider}`
                     }
                   }}
                 >
                   <TableCell>
-                    <Typography fontWeight={500}>{campaign.name}</Typography>
+                    <Typography fontWeight={600}>{campaign.name}</Typography>
                     <Typography variant="body2" color="text.secondary">{campaign.type}</Typography>
                   </TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Box sx={{ width: '100%', maxWidth: 100 }}>
+                      <Box sx={{ width: '100%', maxWidth: 120 }}>
                         <LinearProgress
                           variant="determinate"
                           value={campaign.progress}
                           sx={{
-                            height: 6,
-                            borderRadius: 3,
-                            backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                            height: 8,
+                            borderRadius: 4,
                             '& .MuiLinearProgress-bar': {
+                              borderRadius: 4,
                               backgroundColor: 
                                 campaign.progress < 30 ? theme.palette.error.main :
                                 campaign.progress < 70 ? theme.palette.warning.main :
-                                theme.palette.success.main,
-                              borderRadius: 3
+                                theme.palette.success.main
                             }
                           }}
                         />
                       </Box>
-                      <Typography variant="body2">{campaign.progress}%</Typography>
+                      <Typography variant="body2" fontWeight={500}>
+                        {campaign.progress}%
+                      </Typography>
                     </Box>
                   </TableCell>
                   <TableCell>
@@ -642,20 +506,14 @@ const MarketingDashboard = () => {
                         <Chip
                           label={`${campaign.pendingTasks} pendentes`}
                           size="small"
-                          sx={{
-                            backgroundColor: 'rgba(234, 179, 8, 0.1)',
-                            color: 'warning.main'
-                          }}
+                          sx={{ backgroundColor: 'rgba(255, 193, 7, 0.1)' }}
                         />
                       )}
                       {campaign.overdueTasks > 0 && (
                         <Chip
                           label={`${campaign.overdueTasks} atrasadas`}
                           size="small"
-                          sx={{
-                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                            color: 'error.main'
-                          }}
+                          sx={{ backgroundColor: 'rgba(244, 67, 54, 0.1)' }}
                         />
                       )}
                     </Box>
@@ -664,13 +522,10 @@ const MarketingDashboard = () => {
                     <Chip
                       label={campaign.status === 'active' ? 'Ativa' : 'Pausada'}
                       size="small"
-                      sx={{
+                      sx={{ 
                         backgroundColor: 
-                          campaign.status === 'active' ? 'rgba(16, 185, 129, 0.1)' :
-                          'rgba(234, 179, 8, 0.1)',
-                        color: 
-                          campaign.status === 'active' ? 'success.main' :
-                          'warning.main'
+                          campaign.status === 'active' ? 'rgba(76, 175, 80, 0.1)' :
+                          'rgba(255, 193, 7, 0.1)'
                       }}
                     />
                   </TableCell>
@@ -686,40 +541,10 @@ const MarketingDashboard = () => {
                   </TableCell>
                   <TableCell align="right">
                     <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
-                      <IconButton
-                        size="small"
-                        onClick={() => navigate(`/campaigns/${campaign.id}`)}
-                        sx={{
-                          color: 'primary.main',
-                          '&:hover': {
-                            backgroundColor: 'rgba(59, 130, 246, 0.1)'
-                          }
-                        }}
-                      >
+                      <IconButton size="small" onClick={() => navigate(`/campaigns/${campaign.id}`)}>
                         <VisibilityIcon fontSize="small" />
                       </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={() => navigate(`/campaigns/${campaign.id}/progress`)}
-                        sx={{
-                          color: 'info.main',
-                          '&:hover': {
-                            backgroundColor: 'rgba(14, 165, 233, 0.1)'
-                          }
-                        }}
-                      >
-                        <BarChartIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={() => navigate(`/campaigns/${campaign.id}/edit`)}
-                        sx={{
-                          color: 'secondary.main',
-                          '&:hover': {
-                            backgroundColor: 'rgba(168, 85, 247, 0.1)'
-                          }
-                        }}
-                      >
+                      <IconButton size="small" onClick={() => navigate(`/campaigns/${campaign.id}/edit`)}>
                         <EditIcon fontSize="small" />
                       </IconButton>
                     </Box>
@@ -729,7 +554,7 @@ const MarketingDashboard = () => {
             </TableBody>
           </Table>
         </TableContainer>
-      </GlassPaper>
+      </DashboardCard>
     </Box>
   );
 };
