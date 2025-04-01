@@ -15,9 +15,11 @@ import {
   Menu,
   MenuItem,
   Typography,
-  styled,
   useTheme,
-  ListItemButtonProps
+  AppBar,
+  IconButton,
+  Container,
+  styled
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -31,10 +33,40 @@ import {
   List as ListIcon,
   Insights as InsightsIcon,
   History as HistoryIcon,
-  Notifications as AlertsIcon
+  Notifications as AlertsIcon,
+  Menu as MenuIcon
 } from '@mui/icons-material';
 
-const drawerWidth = 240;
+const drawerWidth = 280;
+
+const ModernAppBar = styled(AppBar)(({ theme }) => ({
+  backdropFilter: 'blur(8px)',
+  backgroundColor: 'rgba(255, 255, 255, 0.8)',
+  color: theme.palette.text.primary,
+  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+  borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
+  [theme.breakpoints.up('sm')]: {
+    width: `calc(100% - ${drawerWidth}px)`,
+    marginLeft: `${drawerWidth}px`,
+  },
+}));
+
+const Sidebar = styled(Box)(({ theme }) => ({
+  width: drawerWidth,
+  flexShrink: 0,
+  [theme.breakpoints.up('sm')]: {
+    position: 'fixed',
+    height: '100vh',
+  },
+}));
+
+const MainContent = styled(Box)(({ theme }) => ({
+  flexGrow: 1,
+  minHeight: '100vh',
+  [theme.breakpoints.up('sm')]: {
+    marginLeft: `${drawerWidth}px`,
+  },
+}));
 
 type MenuItemType = {
   text: string;
@@ -53,34 +85,12 @@ type LayoutProps = {
   children?: React.ReactNode;
 };
 
-interface CustomListItemButtonProps extends ListItemButtonProps {
-  component?: React.ElementType;
-  to?: string;
-  selected?: boolean;
-}
-
-const StyledListItemButton = styled(ListItemButton, {
-  shouldForwardProp: (prop) => prop !== 'selected',
-})<CustomListItemButtonProps>(({ theme, selected }) => ({
-  borderRadius: theme.shape.borderRadius,
-  margin: theme.spacing(0.5, 1),
-  ...(selected && {
-    backgroundColor: theme.palette.action.selected,
-    color: theme.palette.primary.main,
-    '& .MuiListItemIcon-root': {
-      color: theme.palette.primary.main,
-    },
-  }),
-  '&:hover': {
-    backgroundColor: theme.palette.action.hover,
-  },
-}));
-
 const Layout = ({ onLogout, children }: LayoutProps) => {
   const theme = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const open = Boolean(anchorEl);
 
   const menuGroups: MenuGroupType[] = [
@@ -136,143 +146,185 @@ const Layout = ({ onLogout, children }: LayoutProps) => {
   };
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
       <CssBaseline />
       
-      {/* Sidebar */}
-      <Box
-        component="nav"
-        sx={{ 
-          width: drawerWidth, 
-          flexShrink: 0,
-          bgcolor: 'background.paper',
-          borderRight: '1px solid',
-          borderColor: 'divider',
-          height: '100vh',
-          position: 'fixed',
-          display: 'flex',
-          flexDirection: 'column'
-        }}
-      >
-        <Toolbar sx={{ justifyContent: 'center', py: 2 }}>
-          <Typography variant="h6" noWrap component="div">
+      <ModernAppBar position="fixed">
+        <Toolbar sx={{ px: { sm: 3 } }}>
+          <IconButton
+            color="inherit"
+            edge="start"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            sx={{ mr: 2, display: { sm: 'none' } }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             Marketo Flow
           </Typography>
-        </Toolbar>
-        <Divider />
-        
-        {/* Menu Items */}
-        <Box sx={{ flexGrow: 1, overflowY: 'auto', p: 1 }}>
-          {menuGroups.map((group, index) => (
-            <React.Fragment key={index}>
-              <ListSubheader 
-                sx={{ 
-                  bgcolor: 'inherit',
-                  color: theme.palette.text.secondary,
-                  fontWeight: 'medium'
-                }}
-              >
-                {group.subheader}
-              </ListSubheader>
-              <List disablePadding>
-                {group.items.map((item) => (
-                  <ListItem key={item.text} disablePadding>
-                    <StyledListItemButton 
-                      component={Link}
-                      to={item.path}
-                      selected={isItemSelected(item)}
-                    >
-                      <ListItemIcon sx={{ minWidth: 40 }}>
-                        {item.icon}
-                      </ListItemIcon>
-                      <ListItemText 
-                        primary={item.text} 
-                        primaryTypographyProps={{ variant: 'body2' }}
-                      />
-                    </StyledListItemButton>
-                  </ListItem>
-                ))}
-              </List>
-              {index < menuGroups.length - 1 && <Divider sx={{ my: 1 }} />}
-            </React.Fragment>
-          ))}
-        </Box>
-        
-        {/* User Section */}
-        <Box sx={{ p: 2, bgcolor: 'background.default' }}>
-          <Divider sx={{ mb: 2 }} />
-          <ListItemButton 
-            onClick={handleMenuOpen}
-            sx={{
-              borderRadius: theme.shape.borderRadius,
-              '&:hover': {
-                backgroundColor: theme.palette.action.hover,
-              },
-            }}
-          >
+          <IconButton onClick={handleMenuOpen}>
             <Avatar sx={{ 
-              mr: 2,
-              bgcolor: theme.palette.primary.main,
-              width: 32,
-              height: 32
+              width: 36,
+              height: 36,
+              bgcolor: theme.palette.primary.main
             }}>
               <AccountIcon fontSize="small" />
             </Avatar>
-            <ListItemText 
-              primary="Minha Conta" 
-              secondary="Administrador"
-              primaryTypographyProps={{ variant: 'body2', fontWeight: 'medium' }}
-              secondaryTypographyProps={{ variant: 'caption' }}
-            />
-          </ListItemButton>
+          </IconButton>
+        </Toolbar>
+      </ModernAppBar>
 
-          <Menu
-            anchorEl={anchorEl}
-            open={open}
-            onClose={handleMenuClose}
-            anchorOrigin={{
-              vertical: 'top',
-              horizontal: 'right',
-            }}
-            transformOrigin={{
-              vertical: 'bottom',
-              horizontal: 'right',
-            }}
-          >
-            <MenuItem onClick={() => {
-              handleMenuClose();
-              navigate('/settings');
-            }}>
-              <ListItemIcon>
-                <SettingsIcon fontSize="small" />
-              </ListItemIcon>
-              Configurações
-            </MenuItem>
-            <MenuItem onClick={handleLogoutClick}>
-              <ListItemIcon>
-                <LogoutIcon fontSize="small" />
-              </ListItemIcon>
-              Sair
-            </MenuItem>
-          </Menu>
+      <Sidebar>
+        <Box
+          sx={{
+            width: drawerWidth,
+            height: '100vh',
+            position: 'fixed',
+            bgcolor: 'background.paper',
+            borderRight: '1px solid',
+            borderColor: 'divider',
+            display: { xs: mobileOpen ? 'block' : 'none', sm: 'block' },
+            overflowY: 'auto'
+          }}
+        >
+          <Toolbar sx={{ 
+            justifyContent: 'center', 
+            py: 3,
+            background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`
+          }}>
+            <Typography 
+              variant="h6" 
+              noWrap 
+              component="div" 
+              sx={{ 
+                color: 'common.white',
+                fontWeight: 700,
+                letterSpacing: 1
+              }}
+            >
+              Marketo Flow
+            </Typography>
+          </Toolbar>
+          
+          <Box sx={{ flexGrow: 1, overflowY: 'auto', p: 2 }}>
+            {menuGroups.map((group, index) => (
+              <React.Fragment key={index}>
+                <ListSubheader 
+                  sx={{ 
+                    bgcolor: 'transparent',
+                    color: 'text.secondary',
+                    fontWeight: 'medium',
+                    px: 0,
+                    pt: index > 0 ? 3 : 0
+                  }}
+                >
+                  {group.subheader}
+                </ListSubheader>
+                <List disablePadding>
+                  {group.items.map((item) => (
+                    <ListItem key={item.text} disablePadding>
+                      <ListItemButton 
+                        component={Link}
+                        to={item.path}
+                        selected={isItemSelected(item)}
+                        sx={{
+                          borderRadius: 2,
+                          mb: 0.5,
+                          '&.Mui-selected': {
+                            bgcolor: 'primary.light',
+                            color: 'primary.contrastText',
+                            '& .MuiListItemIcon-root': {
+                              color: 'primary.contrastText'
+                            }
+                          },
+                          '&:hover': {
+                            bgcolor: 'action.hover',
+                          }
+                        }}
+                      >
+                        <ListItemIcon sx={{ minWidth: 40 }}>
+                          {item.icon}
+                        </ListItemIcon>
+                        <ListItemText 
+                          primary={item.text} 
+                          primaryTypographyProps={{ 
+                            variant: 'body2',
+                            fontWeight: isItemSelected(item) ? 600 : 400
+                          }}
+                        />
+                      </ListItemButton>
+                    </ListItem>
+                  ))}
+                </List>
+              </React.Fragment>
+            ))}
+          </Box>
         </Box>
-      </Box>
+      </Sidebar>
 
-      {/* Main Content */}
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          p: 3,
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          ml: { sm: `${drawerWidth}px` },
-          bgcolor: 'background.default',
-          minHeight: '100vh'
+      <MainContent>
+        <Toolbar />
+        <Container maxWidth="xl" sx={{ 
+          p: { xs: 2, sm: 3 },
+          '&.MuiContainer-root': {
+            pl: { sm: 3 },
+            pr: { sm: 3 }
+          }
+        }}>
+          {children || <Outlet />}
+        </Container>
+      </MainContent>
+
+      <Menu
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleMenuClose}
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+        PaperProps={{
+          elevation: 3,
+          sx: {
+            mt: 1.5,
+            minWidth: 200,
+            borderRadius: 2,
+            overflow: 'visible',
+            '&:before': {
+              content: '""',
+              display: 'block',
+              position: 'absolute',
+              top: 0,
+              right: 14,
+              width: 10,
+              height: 10,
+              bgcolor: 'background.paper',
+              transform: 'translateY(-50%) rotate(45deg)',
+              zIndex: 0,
+            }
+          }
         }}
       >
-        <Toolbar />
-        {children || <Outlet />}
-      </Box>
+        <MenuItem onClick={() => {
+          handleMenuClose();
+          navigate('/settings');
+        }}>
+          <ListItemIcon>
+            <SettingsIcon fontSize="small" />
+          </ListItemIcon>
+          Configurações
+        </MenuItem>
+        <MenuItem onClick={handleLogoutClick}>
+          <ListItemIcon>
+            <LogoutIcon fontSize="small" />
+          </ListItemIcon>
+          Sair
+        </MenuItem>
+      </Menu>
     </Box>
   );
 };
