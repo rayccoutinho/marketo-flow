@@ -1,8 +1,74 @@
 import React, { useState } from 'react';
-import { FiSearch, FiGrid, FiList, FiDownload, FiPlus } from 'react-icons/fi';
+import { 
+  Box,
+  Button,
+  IconButton,
+  TextField,
+  Typography,
+  Chip,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Grid,
+  ToggleButton,
+  ToggleButtonGroup,
+  InputAdornment,
+  styled,
+  useTheme
+} from '@mui/material';
+import {
+  Search as SearchIcon,
+  GridView as GridIcon,
+  ViewList as ListIcon,
+  Download as DownloadIcon,
+  Add as AddIcon
+} from '@mui/icons-material';
 import { motion } from 'framer-motion';
 
+// Componentes estilizados
+const GlassCard = styled(Box)(({ theme }) => ({
+  backdropFilter: 'blur(16px)',
+  WebkitBackdropFilter: 'blur(16px)',
+  backgroundColor: 'rgba(255, 255, 255, 0.7)',
+  border: '1px solid rgba(255, 255, 255, 0.2)',
+  borderRadius: theme.shape.borderRadius * 2,
+  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+  overflow: 'hidden'
+}));
+
+const TemplateCard = styled(Box)(({ theme }) => ({
+  height: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+  transition: 'all 0.3s ease',
+  backgroundColor: 'rgba(255, 255, 255, 0.8)',
+  border: '1px solid rgba(0, 0, 0, 0.05)',
+  borderRadius: '12px',
+  overflow: 'hidden',
+  '&:hover': {
+    transform: 'translateY(-4px)',
+    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)'
+  }
+}));
+
+const PrimaryButton = styled(Button)(({ theme }) => ({
+  fontWeight: 500,
+  letterSpacing: '0.01em',
+  borderRadius: '8px',
+  padding: theme.spacing(1.5, 3),
+  textTransform: 'none',
+  boxShadow: 'none',
+  '&:hover': {
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+  },
+}));
+
 const TemplatesLibrary = () => {
+  const theme = useTheme();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -42,111 +108,238 @@ const TemplatesLibrary = () => {
     template.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleViewModeChange = (
+    event: React.MouseEvent<HTMLElement>,
+    newViewMode: 'grid' | 'list',
+  ) => {
+    if (newViewMode !== null) {
+      setViewMode(newViewMode);
+    }
+  };
+
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold text-gray-800">Biblioteca de Templates</h1>
-        <div className="flex space-x-4">
-          <button 
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-            onClick={() => {/* Lógica para novo template */}}
+    <Box sx={{ 
+      p: { xs: 2, md: 4 },
+      minHeight: '100vh',
+      background: `
+        radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.05) 0%, transparent 25%),
+        radial-gradient(circle at 90% 80%, rgba(124, 58, 237, 0.05) 0%, transparent 25%)
+      `
+    }}>
+      <Box 
+        sx={{ 
+          mb: 4,
+          maxWidth: '800px'
+        }}
+      >
+        <Typography 
+          variant="h3" 
+          fontWeight={600} 
+          gutterBottom
+          sx={{ 
+            fontSize: { xs: '1.8rem', md: '2.2rem' },
+            lineHeight: 1.2
+          }}
+        >
+          Biblioteca de Templates
+        </Typography>
+        <Typography variant="body1" color="text.secondary" sx={{ fontSize: '1.1rem' }}>
+          Modelos prontos para otimizar suas campanhas de marketing
+        </Typography>
+      </Box>
+
+      <Box 
+        display="flex" 
+        justifyContent="space-between" 
+        alignItems="center" 
+        mb={3}
+        flexDirection={{ xs: 'column', sm: 'row' }}
+        gap={2}
+      >
+        <PrimaryButton
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => {/* Lógica para novo template */}}
+        >
+          Criar Template
+        </PrimaryButton>
+        
+        <Box display="flex" gap={2} width={{ xs: '100%', sm: 'auto' }}>
+          <TextField
+            placeholder="Buscar templates..."
+            size="small"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon color="action" />
+                </InputAdornment>
+              ),
+              sx: {
+                borderRadius: '8px',
+                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                width: { xs: '100%', md: 320 }
+              }
+            }}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          
+          <ToggleButtonGroup
+            value={viewMode}
+            exclusive
+            onChange={handleViewModeChange}
+            aria-label="view mode"
+            size="small"
           >
-            <FiPlus className="mr-2" />
-            Novo Template
-          </button>
-        </div>
-      </div>
+            <ToggleButton value="grid" aria-label="grid view">
+              <GridIcon fontSize="small" />
+            </ToggleButton>
+            <ToggleButton value="list" aria-label="list view">
+              <ListIcon fontSize="small" />
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
+      </Box>
 
-      <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <div className="relative flex-grow max-w-md">
-            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Buscar templates..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <div className="flex space-x-2">
-            <button
-              className={`p-2 rounded-lg ${viewMode === 'grid' ? 'bg-blue-100 text-blue-600' : 'text-gray-500'}`}
-              onClick={() => setViewMode('grid')}
-            >
-              <FiGrid size={20} />
-            </button>
-            <button
-              className={`p-2 rounded-lg ${viewMode === 'list' ? 'bg-blue-100 text-blue-600' : 'text-gray-500'}`}
-              onClick={() => setViewMode('list')}
-            >
-              <FiList size={20} />
-            </button>
-          </div>
-        </div>
-
-        {viewMode === 'grid' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredTemplates.map((template) => (
-              <motion.div
-                key={template.id}
-                whileHover={{ y: -5 }}
-                className="border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow"
-              >
-                <div className="bg-blue-50 p-4">
-                  <h3 className="font-semibold text-lg text-gray-800">{template.name}</h3>
-                  <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full mt-2">
-                    {template.category}
-                  </span>
-                </div>
-                <div className="p-4">
-                  <p className="text-gray-600 mb-4">{template.description}</p>
-                  <div className="flex justify-between items-center text-sm text-gray-500">
-                    <span>Usado em: {template.lastUsed}</span>
-                    <button className="text-blue-600 hover:text-blue-800 flex items-center">
-                      <FiDownload className="mr-1" /> Usar
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="text-left text-gray-600 border-b border-gray-200">
-                  <th className="pb-3">Nome</th>
-                  <th className="pb-3">Descrição</th>
-                  <th className="pb-3">Categoria</th>
-                  <th className="pb-3">Último Uso</th>
-                  <th className="pb-3">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredTemplates.map((template) => (
-                  <tr key={template.id} className="border-b border-gray-200 hover:bg-gray-50">
-                    <td className="py-4 font-medium text-gray-800">{template.name}</td>
-                    <td className="py-4 text-gray-600">{template.description}</td>
-                    <td className="py-4">
-                      <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                        {template.category}
-                      </span>
-                    </td>
-                    <td className="py-4 text-gray-500">{template.lastUsed}</td>
-                    <td className="py-4">
-                      <button className="text-blue-600 hover:text-blue-800 flex items-center">
-                        <FiDownload className="mr-1" /> Usar
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-    </div>
+      <GlassCard>
+        <Box p={3}>
+          {viewMode === 'grid' ? (
+            <Grid container spacing={3}>
+              {filteredTemplates.map((template) => (
+                <Grid item xs={12} sm={6} md={4} lg={3} key={template.id}>
+                  <motion.div
+                    whileHover={{ y: -4 }}
+                  >
+                    <TemplateCard>
+                      <Box 
+                        p={2.5}
+                        sx={{ 
+                          backgroundColor: 'rgba(37, 99, 235, 0.05)',
+                          borderBottom: '1px solid rgba(0, 0, 0, 0.05)'
+                        }}
+                      >
+                        <Typography variant="h6" fontWeight={600} gutterBottom>
+                          {template.name}
+                        </Typography>
+                        <Chip
+                          label={template.category}
+                          size="small"
+                          sx={{
+                            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                            color: 'primary.main'
+                          }}
+                        />
+                      </Box>
+                      <Box p={2.5} flexGrow={1}>
+                        <Typography variant="body2" color="text.secondary" mb={2}>
+                          {template.description}
+                        </Typography>
+                      </Box>
+                      <Box 
+                        p={2}
+                        display="flex" 
+                        justifyContent="space-between" 
+                        alignItems="center"
+                        sx={{ 
+                          backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                          borderTop: '1px solid rgba(0, 0, 0, 0.05)'
+                        }}
+                      >
+                        <Typography variant="caption" color="text.secondary">
+                          Último uso: {template.lastUsed}
+                        </Typography>
+                        <Button
+                          size="small"
+                          startIcon={<DownloadIcon fontSize="small" />}
+                          sx={{ 
+                            textTransform: 'none',
+                            color: 'primary.main'
+                          }}
+                        >
+                          Usar
+                        </Button>
+                      </Box>
+                    </TemplateCard>
+                  </motion.div>
+                </Grid>
+              ))}
+            </Grid>
+          ) : (
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ 
+                    '& .MuiTableCell-root': { 
+                      color: 'text.secondary',
+                      fontWeight: 600,
+                      borderBottomColor: 'divider',
+                      backgroundColor: 'rgba(255, 255, 255, 0.5)'
+                    } 
+                  }}>
+                    <TableCell>Nome</TableCell>
+                    <TableCell>Descrição</TableCell>
+                    <TableCell>Categoria</TableCell>
+                    <TableCell>Último Uso</TableCell>
+                    <TableCell align="right">Ações</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filteredTemplates.map((template) => (
+                    <TableRow 
+                      key={template.id} 
+                      hover 
+                      sx={{ 
+                        '&:last-child td': { borderBottom: 0 },
+                        '& .MuiTableCell-root': { 
+                          borderBottomColor: 'divider',
+                          backgroundColor: 'rgba(255, 255, 255, 0.7)'
+                        }
+                      }}
+                    >
+                      <TableCell>
+                        <Typography fontWeight={500}>{template.name}</Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" color="text.secondary">
+                          {template.description}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={template.category}
+                          size="small"
+                          sx={{
+                            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                            color: 'primary.main'
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2">
+                          {template.lastUsed}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Button
+                          size="small"
+                          startIcon={<DownloadIcon fontSize="small" />}
+                          sx={{ 
+                            textTransform: 'none',
+                            color: 'primary.main'
+                          }}
+                        >
+                          Usar
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </Box>
+      </GlassCard>
+    </Box>
   );
 };
 

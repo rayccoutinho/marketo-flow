@@ -15,7 +15,9 @@ import {
   ListItemText,
   Grid,
   Snackbar,
-  Alert
+  Alert,
+  useTheme,
+  styled
 } from '@mui/material';
 import { 
   FiEdit, 
@@ -27,6 +29,85 @@ import {
   FiCalendar,
   FiUsers
 } from 'react-icons/fi';
+
+// Componentes estilizados
+const GlassPaper = styled(Paper)(({ theme }) => ({
+  backdropFilter: 'blur(16px)',
+  WebkitBackdropFilter: 'blur(16px)',
+  backgroundColor: 'rgba(255, 255, 255, 0.7)',
+  border: '1px solid rgba(255, 255, 255, 0.2)',
+  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+  borderRadius: '12px',
+  padding: theme.spacing(4),
+  marginBottom: theme.spacing(4),
+}));
+
+const SectionHeader = styled(Typography)(({ theme }) => ({
+  fontWeight: 600,
+  letterSpacing: '-0.01em',
+  color: theme.palette.text.primary,
+  marginBottom: theme.spacing(2),
+  fontSize: '1.25rem',
+}));
+
+const ContentCard = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(3),
+  marginBottom: theme.spacing(2),
+  borderRadius: '12px',
+  border: '1px solid rgba(0, 0, 0, 0.08)',
+  backgroundColor: 'rgba(255, 255, 255, 0.6)',
+  transition: 'all 0.2s ease',
+  '&:hover': {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+  },
+}));
+
+const PrimaryButton = styled(Button)(({ theme }) => ({
+  fontWeight: 500,
+  letterSpacing: '0.01em',
+  borderRadius: '8px',
+  padding: theme.spacing(1.5, 3),
+  textTransform: 'none',
+  boxShadow: 'none',
+  '&:hover': {
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+  },
+}));
+
+const SecondaryButton = styled(Button)(({ theme }) => ({
+  fontWeight: 500,
+  letterSpacing: '0.01em',
+  borderRadius: '8px',
+  padding: theme.spacing(1.5, 3),
+  textTransform: 'none',
+  borderColor: 'rgba(0, 0, 0, 0.12)',
+  '&:hover': {
+    backgroundColor: 'rgba(0, 0, 0, 0.02)',
+    borderColor: 'rgba(0, 0, 0, 0.24)',
+  },
+}));
+
+const StyledTabs = styled(Tabs)(({ theme }) => ({
+  '& .MuiTabs-indicator': {
+    backgroundColor: theme.palette.primary.main,
+    height: 3,
+  },
+  marginBottom: theme.spacing(3),
+}));
+
+const StyledTab = styled(Tab)(({ theme }) => ({
+  textTransform: 'none',
+  fontWeight: 500,
+  fontSize: '0.875rem',
+  minWidth: 'unset',
+  padding: theme.spacing(1, 2),
+  marginRight: theme.spacing(2),
+  color: theme.palette.text.primary,
+  '&.Mui-selected': {
+    color: theme.palette.primary.main,
+  },
+}));
 
 interface ContentItem {
   id: string;
@@ -95,6 +176,7 @@ const CampaignDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const theme = useTheme();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
@@ -190,7 +272,8 @@ const CampaignDetails = () => {
         alignItems: 'center', 
         height: '80vh',
         flexDirection: 'column',
-        gap: 2
+        gap: 2,
+        backdropFilter: 'blur(4px)',
       }}>
         <CircularProgress size={60} />
         <Typography variant="body1" color="text.secondary">
@@ -204,29 +287,28 @@ const CampaignDetails = () => {
     return (
       <Box sx={{ p: 3 }}>
         <Typography variant="h6">Campanha não encontrada</Typography>
-        <Button 
+        <PrimaryButton 
           variant="contained" 
           onClick={() => navigate('/dashboard')}
           sx={{ mt: 2 }}
         >
           Voltar ao Dashboard
-        </Button>
+        </PrimaryButton>
       </Box>
     );
   }
 
   return (
     <Box sx={{ p: 3 }}>
-      <Button 
+      <SecondaryButton 
         startIcon={<FiArrowLeft />} 
         onClick={() => navigate('/dashboard')}
         sx={{ mb: 3 }}
-        variant="outlined"
       >
         Voltar ao Dashboard
-      </Button>
+      </SecondaryButton>
 
-      <Paper elevation={3} sx={{ p: 4, mb: 4 }}>
+      <GlassPaper>
         <Box sx={{ 
           display: 'flex', 
           justifyContent: 'space-between', 
@@ -235,7 +317,11 @@ const CampaignDetails = () => {
           flexWrap: 'wrap',
           gap: 2
         }}>
-          <Typography variant="h4" sx={{ wordBreak: 'break-word' }}>
+          <Typography variant="h4" sx={{ 
+            wordBreak: 'break-word',
+            fontWeight: 600,
+            letterSpacing: '-0.02em'
+          }}>
             {campaign.campaignName}
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -250,7 +336,11 @@ const CampaignDetails = () => {
                 campaign.status === 'active' ? 'success' :
                 campaign.status === 'paused' ? 'warning' : 'info'
               }
-              sx={{ textTransform: 'capitalize' }}
+              sx={{ 
+                textTransform: 'capitalize',
+                fontWeight: 500,
+                borderRadius: '6px'
+              }}
             />
             <Typography variant="body2" color="text.secondary">
               Criada em: {formatDate(campaign.createdAt)}
@@ -258,33 +348,32 @@ const CampaignDetails = () => {
           </Box>
         </Box>
 
-        <Tabs 
+        <StyledTabs 
           value={activeTab} 
           onChange={(_, newValue) => setActiveTab(newValue)} 
-          sx={{ mb: 3 }}
           variant="scrollable"
           scrollButtons="auto"
         >
-          <Tab label="Visão Geral" icon={<FiFileText />} />
-          <Tab label="Conteúdo" icon={<FiFileText />} />
-          <Tab label="Progresso" icon={<FiBarChart2 />} />
-          <Tab label="Aprovação" icon={<FiCheckCircle />} />
-          <Tab label="Orçamento" icon={<FiDollarSign />} />
-        </Tabs>
+          <StyledTab label="Visão Geral" icon={<FiFileText />} />
+          <StyledTab label="Conteúdo" icon={<FiFileText />} />
+          <StyledTab label="Progresso" icon={<FiBarChart2 />} />
+          <StyledTab label="Aprovação" icon={<FiCheckCircle />} />
+          <StyledTab label="Orçamento" icon={<FiDollarSign />} />
+        </StyledTabs>
 
         {activeTab === 0 && (
           <Box>
-            <Typography variant="h6" gutterBottom sx={{ mt: 1 }}>
+            <SectionHeader>
               Informações Básicas
-            </Typography>
+            </SectionHeader>
             <Divider sx={{ mb: 3 }} />
             
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <Typography><strong>Template:</strong> {campaign.template || 'Não especificado'}</Typography>
-                <Typography sx={{ mt: 1 }}><strong>Objetivo:</strong> {campaign.objective}</Typography>
-                <Typography sx={{ mt: 1 }}><strong>Tipo de Campanha:</strong> {campaign.campaignType}</Typography>
-                <Typography sx={{ mt: 1 }}>
+                <Typography sx={{ mt: 1.5 }}><strong>Objetivo:</strong> {campaign.objective}</Typography>
+                <Typography sx={{ mt: 1.5 }}><strong>Tipo de Campanha:</strong> {campaign.campaignType}</Typography>
+                <Typography sx={{ mt: 1.5 }}>
                   <strong>Análise de Concorrentes:</strong> {campaign.competitorAnalysis || 'Não informada'}
                 </Typography>
               </Grid>
@@ -293,10 +382,10 @@ const CampaignDetails = () => {
                 <Typography>
                   <strong>Período:</strong> {formatDate(campaign.startDate)} - {formatDate(campaign.endDate)}
                 </Typography>
-                <Typography sx={{ mt: 1 }}>
+                <Typography sx={{ mt: 1.5 }}>
                   <strong>Canal Principal:</strong> {campaign.primaryChannel}
                 </Typography>
-                <Typography sx={{ mt: 1 }}>
+                <Typography sx={{ mt: 1.5 }}>
                   <strong>Canais Secundários:</strong> 
                   {campaign.secondaryChannels?.length > 0 ? 
                     ` ${campaign.secondaryChannels.join(', ')}` : 
@@ -305,16 +394,16 @@ const CampaignDetails = () => {
               </Grid>
               
               <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
+                <SectionHeader sx={{ mt: 3 }}>
                   Público-Alvo
-                </Typography>
+                </SectionHeader>
                 <Typography>{campaign.targetAudience}</Typography>
               </Grid>
 
               <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
+                <SectionHeader sx={{ mt: 3 }}>
                   Mensagens-Chave
-                </Typography>
+                </SectionHeader>
                 <Typography>{campaign.keyMessages}</Typography>
               </Grid>
             </Grid>
@@ -323,85 +412,80 @@ const CampaignDetails = () => {
 
         {activeTab === 1 && (
           <Box>
-            <Typography variant="h6" gutterBottom>
+            <SectionHeader>
               Plano de Conteúdo
-            </Typography>
+            </SectionHeader>
             <Divider sx={{ mb: 3 }} />
             
             {campaign.contentPlan.items.length > 0 ? (
-              <List>
+              <List disablePadding>
                 {campaign.contentPlan.items.map((item) => (
                   <ListItem 
                     key={item.id} 
-                    sx={{ 
-                      border: '1px solid #eee', 
-                      mb: 2, 
-                      borderRadius: 1,
-                      '&:hover': {
-                        backgroundColor: 'action.hover',
-                        borderColor: 'primary.main'
-                      }
-                    }}
+                    disablePadding
+                    sx={{ mb: 2 }}
                   >
-                    <ListItemText
-                      primary={item.title}
-                      secondary={
-                        <>
-                          <Typography component="span" display="block">
-                            Tipo: {item.type} | Plataforma: {item.platform} | Natureza: {item.nature}
+                    <ContentCard sx={{ width: '100%' }}>
+                      <ListItemText
+                        primary={
+                          <Typography fontWeight={500}>
+                            {item.title}
                           </Typography>
-                          <Typography component="span" display="block">
-                            Responsável: {item.assignedTo} | Entrega: {formatDate(item.dueDate)}
-                            {item.budget && ` | Orçamento: ${formatCurrency(item.budget)}`}
-                          </Typography>
-                          {item.notes && (
-                            <Typography component="span" display="block" sx={{ mt: 1 }}>
-                              <strong>Observações:</strong> {item.notes}
+                        }
+                        secondary={
+                          <>
+                            <Typography component="span" display="block" variant="body2">
+                              Tipo: {item.type} | Plataforma: {item.platform} | Natureza: {item.nature}
                             </Typography>
-                          )}
-                        </>
-                      }
-                    />
+                            <Typography component="span" display="block" variant="body2">
+                              Responsável: {item.assignedTo} | Entrega: {formatDate(item.dueDate)}
+                              {item.budget && ` | Orçamento: ${formatCurrency(item.budget)}`}
+                            </Typography>
+                            {item.notes && (
+                              <Typography component="span" display="block" variant="body2" sx={{ mt: 1 }}>
+                                <strong>Observações:</strong> {item.notes}
+                              </Typography>
+                            )}
+                          </>
+                        }
+                      />
+                    </ContentCard>
                   </ListItem>
                 ))}
               </List>
             ) : (
-              <Box sx={{ 
+              <ContentCard sx={{ 
                 display: 'flex', 
                 justifyContent: 'center', 
                 alignItems: 'center', 
                 height: 100,
-                border: '1px dashed #ccc',
-                borderRadius: 1
+                border: '1px dashed rgba(0, 0, 0, 0.12)'
               }}>
-                <Typography color="textSecondary">
+                <Typography color="text.secondary">
                   Nenhum item de conteúdo definido
                 </Typography>
-              </Box>
+              </ContentCard>
             )}
           </Box>
         )}
 
         {activeTab === 2 && (
           <Box>
-            <Typography variant="h6" gutterBottom>
+            <SectionHeader>
               Progresso da Campanha
-            </Typography>
+            </SectionHeader>
             <Divider sx={{ mb: 3 }} />
             
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
-                <Typography variant="subtitle1" gutterBottom>
+                <Typography variant="subtitle1" fontWeight={500} gutterBottom>
                   Progresso Atual
                 </Typography>
-                <Box sx={{ 
+                <ContentCard sx={{ 
                   height: 120,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  backgroundColor: 'background.paper',
-                  borderRadius: 2,
-                  boxShadow: 1,
                   position: 'relative'
                 }}>
                   <CircularProgress 
@@ -428,27 +512,37 @@ const CampaignDetails = () => {
                       Concluído
                     </Typography>
                   </Box>
-                </Box>
+                </ContentCard>
               </Grid>
               
               <Grid item xs={12} md={6}>
-                <Typography variant="subtitle1" gutterBottom>
+                <Typography variant="subtitle1" fontWeight={500} gutterBottom>
                   Estágios de Revisão
                 </Typography>
                 {campaign.progressMetrics.reviewStages?.length > 0 ? (
-                  <List dense>
-                    {campaign.progressMetrics.reviewStages.map((stage, index) => (
-                      <ListItem key={index} sx={{ px: 0 }}>
-                        <ListItemText
-                          primary={`${index + 1}. ${stage}`}
-                        />
-                      </ListItem>
-                    ))}
-                  </List>
+                  <ContentCard>
+                    <List disablePadding dense>
+                      {campaign.progressMetrics.reviewStages.map((stage, index) => (
+                        <ListItem key={index} disablePadding sx={{ py: 0.5 }}>
+                          <ListItemText
+                            primary={`${index + 1}. ${stage}`}
+                          />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </ContentCard>
                 ) : (
-                  <Typography color="text.secondary">
-                    Nenhum estágio de revisão definido
-                  </Typography>
+                  <ContentCard sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    alignItems: 'center', 
+                    height: 100,
+                    border: '1px dashed rgba(0, 0, 0, 0.12)'
+                  }}>
+                    <Typography color="text.secondary">
+                      Nenhum estágio de revisão definido
+                    </Typography>
+                  </ContentCard>
                 )}
               </Grid>
             </Grid>
@@ -457,9 +551,9 @@ const CampaignDetails = () => {
 
         {activeTab === 3 && (
           <Box>
-            <Typography variant="h6" gutterBottom>
+            <SectionHeader>
               Fluxo de Aprovação
-            </Typography>
+            </SectionHeader>
             <Divider sx={{ mb: 3 }} />
             
             <Box sx={{ mb: 3 }}>
@@ -469,83 +563,86 @@ const CampaignDetails = () => {
             </Box>
             
             {campaign.approvalWorkflow.length > 0 ? (
-              <List>
+              <List disablePadding>
                 {campaign.approvalWorkflow.map((approver, index) => (
                   <ListItem 
                     key={index} 
-                    sx={{
-                      border: '1px solid',
-                      borderColor: 'divider',
-                      borderRadius: 1,
-                      mb: 1
-                    }}
+                    disablePadding
+                    sx={{ mb: 1 }}
                   >
-                    <ListItemText
-                      primary={`${index + 1}. ${approver}`}
-                    />
+                    <ContentCard sx={{ width: '100%' }}>
+                      <ListItemText
+                        primary={`${index + 1}. ${approver}`}
+                      />
+                    </ContentCard>
                   </ListItem>
                 ))}
               </List>
             ) : (
-              <Box sx={{ 
+              <ContentCard sx={{ 
                 display: 'flex', 
                 justifyContent: 'center', 
                 alignItems: 'center', 
                 height: 100,
-                border: '1px dashed #ccc',
-                borderRadius: 1
+                border: '1px dashed rgba(0, 0, 0, 0.12)'
               }}>
-                <Typography color="textSecondary">
+                <Typography color="text.secondary">
                   Nenhum aprovador definido
                 </Typography>
-              </Box>
+              </ContentCard>
             )}
           </Box>
         )}
 
         {activeTab === 4 && (
           <Box>
-            <Typography variant="h6" gutterBottom>
+            <SectionHeader>
               Orçamento e Métricas
-            </Typography>
+            </SectionHeader>
             <Divider sx={{ mb: 3 }} />
             
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
-                <Typography variant="subtitle1" gutterBottom>
+                <Typography variant="subtitle1" fontWeight={500} gutterBottom>
                   Distribuição de Orçamento
                 </Typography>
-                <Typography><strong>Total:</strong> {formatCurrency(campaign.budget)}</Typography>
-                {campaign.paidTrafficBudget && (
-                  <Typography sx={{ mt: 1 }}>
-                    <strong>Tráfego Pago:</strong> {formatCurrency(campaign.paidTrafficBudget)}
-                  </Typography>
-                )}
-                {campaign.contentBudget && (
-                  <Typography sx={{ mt: 1 }}>
-                    <strong>Conteúdo:</strong> {formatCurrency(campaign.contentBudget)}
-                  </Typography>
-                )}
+                <ContentCard>
+                  <Typography><strong>Total:</strong> {formatCurrency(campaign.budget)}</Typography>
+                  {campaign.paidTrafficBudget && (
+                    <Typography sx={{ mt: 1.5 }}>
+                      <strong>Tráfego Pago:</strong> {formatCurrency(campaign.paidTrafficBudget)}
+                    </Typography>
+                  )}
+                  {campaign.contentBudget && (
+                    <Typography sx={{ mt: 1.5 }}>
+                      <strong>Conteúdo:</strong> {formatCurrency(campaign.contentBudget)}
+                    </Typography>
+                  )}
+                </ContentCard>
               </Grid>
               
               <Grid item xs={12} md={6}>
-                <Typography variant="subtitle1" gutterBottom>
+                <Typography variant="subtitle1" fontWeight={500} gutterBottom>
                   KPIs Definidos
                 </Typography>
-                <Typography><strong>ROAS Mínimo:</strong> {campaign.kpis.roas}x</Typography>
-                <Typography sx={{ mt: 1 }}>
-                  <strong>CTR Mínimo:</strong> {campaign.kpis.ctr}%
-                </Typography>
-                <Typography sx={{ mt: 1 }}>
-                  <strong>Taxa de Engajamento:</strong> {campaign.kpis.engagementRate}%
-                </Typography>
+                <ContentCard>
+                  <Typography><strong>ROAS Mínimo:</strong> {campaign.kpis.roas}x</Typography>
+                  <Typography sx={{ mt: 1.5 }}>
+                    <strong>CTR Mínimo:</strong> {campaign.kpis.ctr}%
+                  </Typography>
+                  <Typography sx={{ mt: 1.5 }}>
+                    <strong>Taxa de Engajamento:</strong> {campaign.kpis.engagementRate}%
+                  </Typography>
+                </ContentCard>
               </Grid>
               
               <Grid item xs={12}>
-                <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
+                <Typography variant="subtitle1" fontWeight={500} gutterBottom sx={{ mt: 2 }}>
                   Métricas de Sucesso
                 </Typography>
-                <Typography>{campaign.successMetrics}</Typography>
+                <ContentCard>
+                  <Typography>{campaign.successMetrics}</Typography>
+                </ContentCard>
               </Grid>
             </Grid>
           </Box>
@@ -557,29 +654,21 @@ const CampaignDetails = () => {
           gap: 2, 
           mt: 4 
         }}>
-          <Button
-            variant="outlined"
+          <SecondaryButton
             onClick={() => navigate(`/campanhas/${campaign.id}/editar`)}
             startIcon={<FiEdit />}
             disabled={campaign.status === 'completed'}
-            sx={{ 
-              '&:disabled': {
-                borderColor: 'action.disabled',
-                color: 'text.disabled'
-              }
-            }}
           >
             {campaign.status === 'completed' ? 'Edição bloqueada' : 'Editar Briefing'}
-          </Button>
-          <Button
-            variant="contained"
+          </SecondaryButton>
+          <PrimaryButton
             onClick={() => navigate(`/campanhas/${campaign.id}/progresso`)}
             startIcon={<FiBarChart2 />}
           >
             Ver Progresso
-          </Button>
+          </PrimaryButton>
         </Box>
-      </Paper>
+      </GlassPaper>
 
       <Snackbar
         open={snackbar.open}
@@ -590,7 +679,11 @@ const CampaignDetails = () => {
         <Alert 
           onClose={handleCloseSnackbar} 
           severity={snackbar.severity}
-          sx={{ width: '100%' }}
+          sx={{ 
+            width: '100%',
+            backdropFilter: 'blur(20px)',
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          }}
         >
           {snackbar.message}
         </Alert>

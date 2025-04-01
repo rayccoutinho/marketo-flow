@@ -25,13 +25,126 @@ import {
   ListItemText,
   ListItemIcon,
   Snackbar,
-  Alert
+  Alert,
+  useTheme,
+  styled
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import ptBR from 'date-fns/locale/pt-BR';
 import { FiPlus, FiTrash2, FiChevronDown, FiChevronUp, FiPaperclip, FiFile, FiX } from 'react-icons/fi';
+
+// Componentes estilizados
+const GlassPaper = styled(Paper)(({ theme }) => ({
+  backdropFilter: 'blur(16px)',
+  WebkitBackdropFilter: 'blur(16px)',
+  backgroundColor: 'rgba(255, 255, 255, 0.7)',
+  border: '1px solid rgba(255, 255, 255, 0.2)',
+  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+  borderRadius: '12px',
+  padding: theme.spacing(4),
+  margin: '0 auto',
+  maxWidth: '1200px',
+  marginBottom: theme.spacing(4),
+}));
+
+const SectionHeader = styled(Typography)(({ theme }) => ({
+  fontWeight: 600,
+  letterSpacing: '-0.01em',
+  color: theme.palette.text.primary,
+  marginBottom: theme.spacing(2),
+  fontSize: '1.25rem',
+}));
+
+const ContentCard = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(3),
+  marginBottom: theme.spacing(3),
+  borderRadius: '12px',
+  border: '1px solid rgba(0, 0, 0, 0.08)',
+  backgroundColor: 'rgba(255, 255, 255, 0.6)',
+  transition: 'all 0.2s ease',
+  '&:hover': {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+  },
+}));
+
+const PrimaryButton = styled(Button)(({ theme }) => ({
+  fontWeight: 500,
+  letterSpacing: '0.01em',
+  borderRadius: '8px',
+  padding: theme.spacing(1.5, 3),
+  textTransform: 'none',
+  boxShadow: 'none',
+  '&:hover': {
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+  },
+}));
+
+const SecondaryButton = styled(Button)(({ theme }) => ({
+  fontWeight: 500,
+  letterSpacing: '0.01em',
+  borderRadius: '8px',
+  padding: theme.spacing(1.5, 3),
+  textTransform: 'none',
+  borderColor: 'rgba(0, 0, 0, 0.12)',
+  '&:hover': {
+    backgroundColor: 'rgba(0, 0, 0, 0.02)',
+    borderColor: 'rgba(0, 0, 0, 0.24)',
+  },
+}));
+
+const StyledTabs = styled(Tabs)(({ theme }) => ({
+  '& .MuiTabs-indicator': {
+    backgroundColor: theme.palette.primary.main,
+    height: 3,
+  },
+  marginBottom: theme.spacing(4),
+}));
+
+const StyledTab = styled(Tab)(({ theme }) => ({
+  textTransform: 'none',
+  fontWeight: 500,
+  fontSize: '0.875rem',
+  minWidth: 'unset',
+  padding: theme.spacing(1, 2),
+  marginRight: theme.spacing(2),
+  color: theme.palette.text.primary,
+  '&.Mui-selected': {
+    color: theme.palette.primary.main,
+  },
+}));
+
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '8px',
+    '& fieldset': {
+      borderColor: 'rgba(0, 0, 0, 0.12)',
+    },
+    '&:hover fieldset': {
+      borderColor: 'rgba(0, 0, 0, 0.24)',
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: theme.palette.primary.main,
+      borderWidth: 1,
+    },
+  },
+}));
+
+const StyledSelect = styled(Select)(({ theme }) => ({
+  borderRadius: '8px',
+  '& .MuiOutlinedInput-notchedOutline': {
+    borderColor: 'rgba(0, 0, 0, 0.12)',
+  },
+  '&:hover .MuiOutlinedInput-notchedOutline': {
+    borderColor: 'rgba(0, 0, 0, 0.24)',
+  },
+  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+    borderColor: theme.palette.primary.main,
+    borderWidth: 1,
+  },
+}));
 
 // Tipos
 type ContentType = 'image' | 'video' | 'text' | 'banner' | 'story';
@@ -273,26 +386,31 @@ const CampaignBriefing = () => {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
-      <Box component={Paper} elevation={3} sx={{ p: 4, maxWidth: 1200, mx: 'auto', mb: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 4 }}>
+      <GlassPaper>
+        <Typography variant="h4" component="h1" gutterBottom sx={{ 
+          mb: 4,
+          fontWeight: 600,
+          letterSpacing: '-0.02em',
+          color: 'text.primary'
+        }}>
           Novo Briefing de Campanha
         </Typography>
 
-        <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 4 }}>
-          <Tab label="Informações Básicas" />
-          <Tab label="Estratégia" />
-          <Tab label="Conteúdo" />
-          <Tab label="Anexos" />
-          <Tab label="Revisão" />
-        </Tabs>
+        <StyledTabs value={activeTab} onChange={handleTabChange}>
+          <StyledTab label="Informações Básicas" />
+          <StyledTab label="Estratégia" />
+          <StyledTab label="Conteúdo" />
+          <StyledTab label="Anexos" />
+          <StyledTab label="Revisão" />
+        </StyledTabs>
         
         <form onSubmit={handleSubmit(onSubmit)}>
           {activeTab === 0 && (
             <Grid container spacing={3}>
               <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom>
+                <SectionHeader variant="h6">
                   Template e Informações Gerais
-                </Typography>
+                </SectionHeader>
                 <Divider sx={{ mb: 3 }} />
               </Grid>
 
@@ -302,7 +420,7 @@ const CampaignBriefing = () => {
                   control={control}
                   rules={{ required: 'Nome da campanha é obrigatório' }}
                   render={({ field }) => (
-                    <TextField
+                    <StyledTextField
                       {...field}
                       label="Nome da Campanha"
                       variant="outlined"
@@ -332,7 +450,7 @@ const CampaignBriefing = () => {
                           field.onChange(newValue ? newValue.value : '');
                         }}
                         renderInput={(params) => (
-                          <TextField 
+                          <StyledTextField 
                             {...params} 
                             label="Template de Campanha" 
                             variant="outlined" 
@@ -350,7 +468,7 @@ const CampaignBriefing = () => {
                   control={control}
                   rules={{ required: 'Objetivo é obrigatório' }}
                   render={({ field }) => (
-                    <TextField
+                    <StyledTextField
                       {...field}
                       label="Objetivo Principal"
                       variant="outlined"
@@ -371,14 +489,14 @@ const CampaignBriefing = () => {
                   render={({ field }) => (
                     <FormControl fullWidth>
                       <InputLabel>Tipo de Campanha</InputLabel>
-                      <Select
+                      <StyledSelect
                         {...field}
                         label="Tipo de Campanha"
                       >
                         <MenuItem value="paid">Tráfego Pago</MenuItem>
                         <MenuItem value="organic">Conteúdo Orgânico</MenuItem>
                         <MenuItem value="integrated">Integrada (Pago + Orgânico)</MenuItem>
-                      </Select>
+                      </StyledSelect>
                     </FormControl>
                   )}
                 />
@@ -437,7 +555,7 @@ const CampaignBriefing = () => {
                     min: { value: 1000, message: 'Mínimo de R$ 1.000' }
                   }}
                   render={({ field }) => (
-                    <TextField
+                    <StyledTextField
                       {...field}
                       label="Orçamento Total (R$)"
                       type="number"
@@ -458,7 +576,7 @@ const CampaignBriefing = () => {
                       name="paidTrafficBudget"
                       control={control}
                       render={({ field }) => (
-                        <TextField
+                        <StyledTextField
                           {...field}
                           label="Orçamento Tráfego Pago (R$)"
                           type="number"
@@ -474,7 +592,7 @@ const CampaignBriefing = () => {
                       name="contentBudget"
                       control={control}
                       render={({ field }) => (
-                        <TextField
+                        <StyledTextField
                           {...field}
                           label="Orçamento Conteúdo (R$)"
                           type="number"
@@ -493,9 +611,9 @@ const CampaignBriefing = () => {
           {activeTab === 1 && (
             <Grid container spacing={3}>
               <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom>
+                <SectionHeader variant="h6">
                   Canais e Público-Alvo
-                </Typography>
+                </SectionHeader>
                 <Divider sx={{ mb: 3 }} />
               </Grid>
 
@@ -507,7 +625,7 @@ const CampaignBriefing = () => {
                   render={({ field }) => (
                     <FormControl fullWidth error={!!errors.primaryChannel}>
                       <InputLabel>Canal Principal</InputLabel>
-                      <Select
+                      <StyledSelect
                         {...field}
                         label="Canal Principal"
                       >
@@ -516,7 +634,7 @@ const CampaignBriefing = () => {
                             {channel}
                           </MenuItem>
                         ))}
-                      </Select>
+                      </StyledSelect>
                       {errors.primaryChannel && (
                         <Typography variant="caption" color="error">
                           {errors.primaryChannel.message}
@@ -534,14 +652,14 @@ const CampaignBriefing = () => {
                   render={({ field }) => (
                     <FormControl fullWidth>
                       <InputLabel>Canais Secundários</InputLabel>
-                      <Select
+                      <StyledSelect
                         {...field}
                         multiple
                         label="Canais Secundários"
                         renderValue={(selected) => (
                           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                             {(selected as string[]).map((value) => (
-                              <Chip key={value} label={value} />
+                              <Chip key={value} label={value} size="small" />
                             ))}
                           </Box>
                         )}
@@ -552,7 +670,7 @@ const CampaignBriefing = () => {
                             {channel}
                           </MenuItem>
                         ))}
-                      </Select>
+                      </StyledSelect>
                     </FormControl>
                   )}
                 />
@@ -564,7 +682,7 @@ const CampaignBriefing = () => {
                   control={control}
                   rules={{ required: 'Público-alvo é obrigatório' }}
                   render={({ field }) => (
-                    <TextField
+                    <StyledTextField
                       {...field}
                       label="Público-Alvo (Gênero, Idade, Interesses)"
                       variant="outlined"
@@ -580,9 +698,9 @@ const CampaignBriefing = () => {
               </Grid>
 
               <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
+                <SectionHeader variant="h6" sx={{ mt: 4 }}>
                   KPIs e Métricas
-                </Typography>
+                </SectionHeader>
                 <Divider sx={{ mb: 3 }} />
               </Grid>
 
@@ -591,7 +709,7 @@ const CampaignBriefing = () => {
                   name="kpis.roas"
                   control={control}
                   render={({ field }) => (
-                    <TextField
+                    <StyledTextField
                       {...field}
                       label="ROAS Mínimo"
                       type="number"
@@ -608,7 +726,7 @@ const CampaignBriefing = () => {
                   name="kpis.ctr"
                   control={control}
                   render={({ field }) => (
-                    <TextField
+                    <StyledTextField
                       {...field}
                       label="CTR Mínimo (%)"
                       type="number"
@@ -625,7 +743,7 @@ const CampaignBriefing = () => {
                   name="kpis.engagementRate"
                   control={control}
                   render={({ field }) => (
-                    <TextField
+                    <StyledTextField
                       {...field}
                       label="Taxa de Engajamento (%)"
                       type="number"
@@ -642,7 +760,7 @@ const CampaignBriefing = () => {
                   name="keyMessages"
                   control={control}
                   render={({ field }) => (
-                    <TextField
+                    <StyledTextField
                       {...field}
                       label="Mensagens-Chave"
                       variant="outlined"
@@ -660,7 +778,7 @@ const CampaignBriefing = () => {
                   name="successMetrics"
                   control={control}
                   render={({ field }) => (
-                    <TextField
+                    <StyledTextField
                       {...field}
                       label="Métricas de Sucesso"
                       variant="outlined"
@@ -679,8 +797,12 @@ const CampaignBriefing = () => {
             <Grid container spacing={3}>
               <Grid item xs={12}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Typography variant="h6">Plano de Conteúdo</Typography>
-                  <IconButton onClick={() => toggleSection('contentPlan')} size="small" sx={{ ml: 1 }}>
+                  <SectionHeader>Plano de Conteúdo</SectionHeader>
+                  <IconButton 
+                    onClick={() => toggleSection('contentPlan')} 
+                    size="small" 
+                    sx={{ ml: 1 }}
+                  >
                     {expandedSections.contentPlan ? <FiChevronUp /> : <FiChevronDown />}
                   </IconButton>
                 </Box>
@@ -688,24 +810,17 @@ const CampaignBriefing = () => {
                 {expandedSections.contentPlan && (
                   <>
                     <Box sx={{ mb: 3 }}>
-                      <Button
+                      <PrimaryButton
                         variant="outlined"
                         startIcon={<FiPlus />}
                         onClick={addContentItem}
                         sx={{ mb: 2 }}
                       >
                         Adicionar Item
-                      </Button>
+                      </PrimaryButton>
 
                       {contentItems.map((field, index) => (
-                        <Box key={field.id} sx={{ 
-                          p: 3, 
-                          mb: 3, 
-                          border: '1px solid', 
-                          borderColor: 'divider', 
-                          borderRadius: 1,
-                          backgroundColor: 'background.paper'
-                        }}>
+                        <ContentCard key={field.id}>
                           <Grid container spacing={2} alignItems="center">
                             <Grid item xs={12} md={6}>
                               <Controller
@@ -713,7 +828,7 @@ const CampaignBriefing = () => {
                                 control={control}
                                 rules={{ required: 'Título é obrigatório' }}
                                 render={({ field }) => (
-                                  <TextField
+                                  <StyledTextField
                                     {...field}
                                     label="Título do Conteúdo"
                                     fullWidth
@@ -731,13 +846,13 @@ const CampaignBriefing = () => {
                                 render={({ field }) => (
                                   <FormControl fullWidth>
                                     <InputLabel>Tipo</InputLabel>
-                                    <Select {...field} label="Tipo">
+                                    <StyledSelect {...field} label="Tipo">
                                       {contentTypes.map(type => (
                                         <MenuItem key={type.value} value={type.value}>
                                           {type.label}
                                         </MenuItem>
                                       ))}
-                                    </Select>
+                                    </StyledSelect>
                                   </FormControl>
                                 )}
                               />
@@ -750,13 +865,13 @@ const CampaignBriefing = () => {
                                 render={({ field }) => (
                                   <FormControl fullWidth>
                                     <InputLabel>Plataforma</InputLabel>
-                                    <Select {...field} label="Plataforma">
+                                    <StyledSelect {...field} label="Plataforma">
                                       {platforms.map(platform => (
                                         <MenuItem key={platform.value} value={platform.value}>
                                           {platform.label}
                                         </MenuItem>
                                       ))}
-                                    </Select>
+                                    </StyledSelect>
                                   </FormControl>
                                 )}
                               />
@@ -769,10 +884,10 @@ const CampaignBriefing = () => {
                                 render={({ field }) => (
                                   <FormControl fullWidth>
                                     <InputLabel>Tipo</InputLabel>
-                                    <Select {...field} label="Tipo">
+                                    <StyledSelect {...field} label="Tipo">
                                       <MenuItem value="organic">Orgânico</MenuItem>
                                       <MenuItem value="paid">Pago</MenuItem>
-                                    </Select>
+                                    </StyledSelect>
                                   </FormControl>
                                 )}
                               />
@@ -784,7 +899,7 @@ const CampaignBriefing = () => {
                                   name={`contentPlan.items.${index}.budget`}
                                   control={control}
                                   render={({ field }) => (
-                                    <TextField
+                                    <StyledTextField
                                       {...field}
                                       label="Orçamento (R$)"
                                       type="number"
@@ -801,7 +916,7 @@ const CampaignBriefing = () => {
                                 name={`contentPlan.items.${index}.dueDate`}
                                 control={control}
                                 render={({ field }) => (
-                                  <TextField
+                                  <StyledTextField
                                     {...field}
                                     label="Data de Entrega"
                                     type="date"
@@ -819,13 +934,13 @@ const CampaignBriefing = () => {
                                 render={({ field }) => (
                                   <FormControl fullWidth>
                                     <InputLabel>Responsável</InputLabel>
-                                    <Select {...field} label="Responsável">
+                                    <StyledSelect {...field} label="Responsável">
                                       {teamMembers.map(member => (
                                         <MenuItem key={member} value={member}>
                                           {member}
                                         </MenuItem>
                                       ))}
-                                    </Select>
+                                    </StyledSelect>
                                   </FormControl>
                                 )}
                               />
@@ -836,7 +951,7 @@ const CampaignBriefing = () => {
                                 name={`contentPlan.items.${index}.notes`}
                                 control={control}
                                 render={({ field }) => (
-                                  <TextField
+                                  <StyledTextField
                                     {...field}
                                     label="Observações"
                                     fullWidth
@@ -857,14 +972,14 @@ const CampaignBriefing = () => {
                               </IconButton>
                             </Grid>
                           </Grid>
-                        </Box>
+                        </ContentCard>
                       ))}
                     </Box>
 
                     <Grid item xs={12}>
-                      <Typography variant="h6" gutterBottom>
+                      <SectionHeader>
                         Fluxo de Aprovação
-                      </Typography>
+                      </SectionHeader>
                       <Divider sx={{ mb: 2 }} />
                       <Controller
                         name="approvalWorkflow"
@@ -876,7 +991,7 @@ const CampaignBriefing = () => {
                             value={field.value}
                             onChange={(_, newValue) => field.onChange(newValue)}
                             renderInput={(params) => (
-                              <TextField
+                              <StyledTextField
                                 {...params}
                                 label="Ordem de Aprovação"
                                 placeholder="Selecione os aprovadores"
@@ -905,8 +1020,12 @@ const CampaignBriefing = () => {
             <Grid container spacing={3}>
               <Grid item xs={12}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Typography variant="h6">Documentos Anexados</Typography>
-                  <IconButton onClick={() => toggleSection('attachments')} size="small" sx={{ ml: 1 }}>
+                  <SectionHeader>Documentos Anexados</SectionHeader>
+                  <IconButton 
+                    onClick={() => toggleSection('attachments')} 
+                    size="small" 
+                    sx={{ ml: 1 }}
+                  >
                     {expandedSections.attachments ? <FiChevronUp /> : <FiChevronDown />}
                   </IconButton>
                 </Box>
@@ -921,20 +1040,20 @@ const CampaignBriefing = () => {
                       multiple
                       style={{ display: 'none' }}
                     />
-                    <Button
+                    <PrimaryButton
                       variant="outlined"
                       startIcon={<FiPaperclip />}
                       onClick={triggerFileInput}
                       sx={{ mb: 3 }}
                     >
                       Anexar Documentos
-                    </Button>
+                    </PrimaryButton>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                       Formatos aceitos: PDF, DOC, DOCX (Máx. 10MB cada)
                     </Typography>
 
                     {attachments.length > 0 ? (
-                      <List sx={{ bgcolor: 'background.paper' }}>
+                      <List sx={{ bgcolor: 'background.paper', borderRadius: '8px' }}>
                         {attachments.map((file, index) => (
                           <ListItem
                             key={file.id}
@@ -968,9 +1087,9 @@ const CampaignBriefing = () => {
           {activeTab === 4 && (
             <Grid container spacing={3}>
               <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom>
+                <SectionHeader>
                   Revisão Final
-                </Typography>
+                </SectionHeader>
                 <Divider sx={{ mb: 3 }} />
               </Grid>
 
@@ -979,7 +1098,7 @@ const CampaignBriefing = () => {
                   name="competitorAnalysis"
                   control={control}
                   render={({ field }) => (
-                    <TextField
+                    <StyledTextField
                       {...field}
                       label="Análise de Concorrentes"
                       variant="outlined"
@@ -1020,36 +1139,36 @@ const CampaignBriefing = () => {
           )}
 
           <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
-            <Button 
+            <SecondaryButton 
               variant="outlined" 
               size="large"
               disabled={activeTab === 0}
               onClick={() => setActiveTab(prev => prev - 1)}
             >
               Voltar
-            </Button>
+            </SecondaryButton>
             
             {activeTab < 4 ? (
-              <Button 
+              <PrimaryButton 
                 variant="contained" 
                 size="large"
                 onClick={() => setActiveTab(prev => prev + 1)}
               >
                 Próximo
-              </Button>
+              </PrimaryButton>
             ) : (
-              <Button 
+              <PrimaryButton 
                 type="submit" 
                 variant="contained" 
                 size="large"
                 sx={{ px: 4 }}
               >
                 Enviar Briefing
-              </Button>
+              </PrimaryButton>
             )}
           </Grid>
         </form>
-      </Box>
+      </GlassPaper>
 
       <Snackbar
         open={openSnackbar}
@@ -1057,7 +1176,15 @@ const CampaignBriefing = () => {
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
+        <Alert 
+          onClose={handleCloseSnackbar} 
+          severity="success" 
+          sx={{ 
+            width: '100%',
+            backdropFilter: 'blur(20px)',
+            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+          }}
+        >
           Briefing salvo com sucesso!
         </Alert>
       </Snackbar>

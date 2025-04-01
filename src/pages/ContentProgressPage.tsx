@@ -1,18 +1,111 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import {
-  FiEdit,
-  FiImage,
-  FiVideo,
-  FiFileText,
-  FiLayers,
-  FiCalendar,
-  FiUser,
-  FiArrowRight,
-  FiSearch,
-  FiPlus,
-  FiTrash2
-} from 'react-icons/fi';
+import { 
+  Box, 
+  Typography, 
+  Button, 
+  Select, 
+  MenuItem, 
+  InputBase, 
+  Divider, 
+  Chip,
+  CircularProgress,
+  TextField,
+  Paper,
+  useTheme,
+  styled
+} from '@mui/material';
+import { 
+  Edit as EditIcon,
+  Image as ImageIcon,
+  Videocam as VideoIcon,
+  Description as TextIcon,
+  Layers as BannerIcon,
+  CalendarToday as CalendarIcon,
+  Person as PersonIcon,
+  ArrowForward as ArrowForwardIcon,
+  Search as SearchIcon,
+  Add as AddIcon,
+  Delete as DeleteIcon
+} from '@mui/icons-material';
+
+// Componentes estilizados
+const GlassPaper = styled(Paper)(({ theme }) => ({
+  backdropFilter: 'blur(16px)',
+  WebkitBackdropFilter: 'blur(16px)',
+  backgroundColor: 'rgba(255, 255, 255, 0.7)',
+  border: '1px solid rgba(255, 255, 255, 0.2)',
+  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+  borderRadius: '12px',
+  padding: theme.spacing(4),
+  marginBottom: theme.spacing(3),
+}));
+
+const ContentCard = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(3),
+  borderRadius: '12px',
+  border: '1px solid rgba(0, 0, 0, 0.08)',
+  backgroundColor: 'rgba(255, 255, 255, 0.6)',
+  transition: 'all 0.2s ease',
+  '&:hover': {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+  },
+}));
+
+const PrimaryButton = styled(Button)(({ theme }) => ({
+  fontWeight: 500,
+  letterSpacing: '0.01em',
+  borderRadius: '8px',
+  padding: theme.spacing(1.5, 3),
+  textTransform: 'none',
+  boxShadow: 'none',
+  '&:hover': {
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+  },
+}));
+
+const SecondaryButton = styled(Button)(({ theme }) => ({
+  fontWeight: 500,
+  letterSpacing: '0.01em',
+  borderRadius: '8px',
+  padding: theme.spacing(1.5, 3),
+  textTransform: 'none',
+  borderColor: 'rgba(0, 0, 0, 0.12)',
+  '&:hover': {
+    backgroundColor: 'rgba(0, 0, 0, 0.02)',
+    borderColor: 'rgba(0, 0, 0, 0.24)',
+  },
+}));
+
+const StyledSelect = styled(Select)(({ theme }) => ({
+  borderRadius: '8px',
+  '& .MuiOutlinedInput-notchedOutline': {
+    borderColor: 'rgba(0, 0, 0, 0.12)',
+  },
+  '&:hover .MuiOutlinedInput-notchedOutline': {
+    borderColor: 'rgba(0, 0, 0, 0.24)',
+  },
+  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+    borderColor: theme.palette.primary.main,
+    borderWidth: 1,
+  },
+}));
+
+const StyledInput = styled(InputBase)(({ theme }) => ({
+  '& .MuiInputBase-input': {
+    borderRadius: '8px',
+    border: '1px solid rgba(0, 0, 0, 0.12)',
+    padding: '10px 12px',
+    '&:hover': {
+      borderColor: 'rgba(0, 0, 0, 0.24)',
+    },
+    '&:focus': {
+      borderColor: theme.palette.primary.main,
+      boxShadow: `0 0 0 1px ${theme.palette.primary.main}`,
+    },
+  },
+}));
 
 // Definindo os tipos
 type ContentType = 'image' | 'video' | 'text' | 'banner' | 'story';
@@ -42,14 +135,6 @@ interface Campaign {
 }
 
 // Constantes para status
-const STATUS_COLORS: Record<StatusType, string> = {
-  not_started: 'bg-gray-500',
-  in_progress: 'bg-blue-500',
-  review: 'bg-yellow-500',
-  approved: 'bg-purple-500',
-  published: 'bg-green-500'
-};
-
 const STATUS_LABELS: Record<StatusType, string> = {
   not_started: 'Não Iniciado',
   in_progress: 'Em Progresso',
@@ -58,40 +143,63 @@ const STATUS_LABELS: Record<StatusType, string> = {
   published: 'Publicado'
 };
 
+// Mapeamento de status para cores do Material UI
+const STATUS_COLORS: Record<StatusType, 'default' | 'primary' | 'warning' | 'secondary' | 'success'> = {
+  not_started: 'default',
+  in_progress: 'primary',
+  review: 'warning',
+  approved: 'secondary',
+  published: 'success'
+};
+
 // Ícones para tipos de conteúdo
 const TYPE_ICONS: Record<ContentType, JSX.Element> = {
-  image: <FiImage className="text-pink-500" />,
-  video: <FiVideo className="text-red-500" />,
-  text: <FiFileText className="text-blue-500" />,
-  banner: <FiLayers className="text-indigo-500" />,
-  story: <FiImage className="text-purple-500" />
+  image: <ImageIcon color="secondary" />,
+  video: <VideoIcon color="error" />,
+  text: <TextIcon color="primary" />,
+  banner: <BannerIcon color="info" />,
+  story: <ImageIcon color="primary" />
 };
 
 // Cores para plataformas
 const PLATFORM_COLORS: Record<PlatformType, string> = {
-  instagram: 'bg-gradient-to-r from-pink-500 to-yellow-500',
-  facebook: 'bg-blue-600',
-  linkedin: 'bg-blue-700',
-  twitter: 'bg-blue-400',
-  website: 'bg-gray-600'
+  instagram: 'linear-gradient(to right, #833ab4, #fd1d1d, #fcb045)',
+  facebook: '#1877f2',
+  linkedin: '#0a66c2',
+  twitter: '#1da1f2',
+  website: '#6b7280'
 };
 
 // Componente ProgressBar
 const ProgressBar = ({ progress }: { progress: number }) => (
-  <div className="w-full bg-gray-200 rounded-full h-2.5">
-    <div 
-      className="bg-blue-600 h-2.5 rounded-full transition-all duration-300" 
-      style={{ width: `${progress}%` }}
+  <Box sx={{ width: '100%', bgcolor: 'divider', borderRadius: 5, height: 8 }}>
+    <Box 
+      sx={{ 
+        bgcolor: 'primary.main', 
+        height: 8, 
+        borderRadius: 5,
+        transition: 'width 0.3s ease',
+        width: `${progress}%` 
+      }}
     />
-  </div>
+  </Box>
 );
 
-// Componente StatusBadge
-const StatusBadge = ({ status }: { status: StatusType }) => (
-  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white ${STATUS_COLORS[status]}`}>
-    {STATUS_LABELS[status]}
-  </span>
-);
+// Componente StatusBadge corrigido
+const StatusBadge = ({ status }: { status: StatusType }) => {
+  const color = STATUS_COLORS[status];
+  return (
+    <Chip 
+      label={STATUS_LABELS[status]} 
+      color={color}
+      size="small"
+      sx={{ 
+        borderRadius: '6px',
+        color: status === 'not_started' ? 'text.primary' : 'common.white'
+      }}
+    />
+  );
+};
 
 // Componente ContentItemCard
 interface ContentItemCardProps {
@@ -116,88 +224,115 @@ const ContentItemCard = ({
   };
 
   return (
-    <motion.div 
-      whileHover={{ y: -5 }}
-      className="bg-white rounded-lg shadow p-4 border border-gray-200 transition-shadow hover:shadow-md"
-    >
-      <div className="flex justify-between items-start mb-2">
-        <div className="flex items-center gap-2">
-          <div className="p-2 bg-gray-100 rounded-lg">
-            {TYPE_ICONS[item.type]}
-          </div>
-          <div>
-            <h3 className="font-medium text-gray-900 line-clamp-1">{item.title}</h3>
-            <div className="flex items-center gap-2 mt-1">
-              <span className={`inline-block w-3 h-3 rounded-full ${PLATFORM_COLORS[item.platform]}`} />
-              <span className="text-xs text-gray-500 capitalize">{item.platform}</span>
-            </div>
-          </div>
-        </div>
-        <StatusBadge status={item.status} />
-      </div>
+    <motion.div whileHover={{ y: -5 }}>
+      <ContentCard sx={{ mb: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ p: 1.5, bgcolor: 'action.hover', borderRadius: '8px' }}>
+              {TYPE_ICONS[item.type]}
+            </Box>
+            <Box>
+              <Typography fontWeight={500} noWrap sx={{ maxWidth: 200 }}>
+                {item.title}
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                <Box sx={{ 
+                  width: 12, 
+                  height: 12, 
+                  borderRadius: '50%', 
+                  background: PLATFORM_COLORS[item.platform] 
+                }} />
+                <Typography variant="body2" color="text.secondary" textTransform="capitalize">
+                  {item.platform}
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+          <StatusBadge status={item.status} />
+        </Box>
 
-      <div className="my-3">
-        <div className="flex justify-between text-xs text-gray-500 mb-1">
-          <span>Progresso</span>
-          <span>{item.progress}%</span>
-        </div>
-        <ProgressBar progress={item.progress} />
-      </div>
+        <Box sx={{ my: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+            <Typography variant="body2" color="text.secondary">Progresso</Typography>
+            <Typography variant="body2" color="text.secondary">{item.progress}%</Typography>
+          </Box>
+          <ProgressBar progress={item.progress} />
+        </Box>
 
-      <div className="flex justify-between items-center text-sm text-gray-500">
-        <div className="flex items-center gap-1">
-          <FiUser size={14} />
-          <span className="truncate max-w-[120px]">{item.assignedTo}</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <FiCalendar size={14} />
-          <span>{new Date(item.dueDate).toLocaleDateString('pt-BR')}</span>
-        </div>
-      </div>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <PersonIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+            <Typography variant="body2" color="text.secondary" noWrap sx={{ maxWidth: 120 }}>
+              {item.assignedTo}
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <CalendarIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+            <Typography variant="body2" color="text.secondary">
+              {new Date(item.dueDate).toLocaleDateString('pt-BR')}
+            </Typography>
+          </Box>
+        </Box>
 
-      <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between">
-        <div className="flex gap-2">
-          <button 
-            onClick={() => onEdit(item)}
-            className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
-          >
-            <FiEdit size={14} />
-            Editar
-          </button>
-          <button 
-            onClick={() => onDelete(item.id)}
-            className="text-sm text-red-600 hover:text-red-800 flex items-center gap-1"
-          >
-            <FiTrash2 size={14} />
-            Excluir
-          </button>
-        </div>
-        
-        <div className="flex gap-2">
-          {item.status !== 'not_started' && (
-            <button 
-              onClick={() => onStatusChange(item.id, 'not_started')}
-              className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition-colors"
+        <Divider sx={{ my: 2 }} />
+
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              size="small"
+              startIcon={<EditIcon />}
+              onClick={() => onEdit(item)}
+              sx={{ color: 'primary.main', fontSize: 14 }}
             >
-              Reiniciar
-            </button>
-          )}
-          <button 
-            onClick={() => {
-              const nextStatus = NEXT_STATUS_MAP[item.status];
-              nextStatus && onStatusChange(item.id, nextStatus);
-            }}
-            disabled={!NEXT_STATUS_MAP[item.status]}
-            className={`text-xs px-2 py-1 rounded flex items-center gap-1 transition-colors ${
-              !NEXT_STATUS_MAP[item.status] 
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
-            }`}
-          >
-            Avançar <FiArrowRight size={12} />
-          </button>
-        </div>
-      </div>
+              Editar
+            </Button>
+            <Button
+              size="small"
+              startIcon={<DeleteIcon />}
+              onClick={() => onDelete(item.id)}
+              sx={{ color: 'error.main', fontSize: 14 }}
+            >
+              Excluir
+            </Button>
+          </Box>
+          
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            {item.status !== 'not_started' && (
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={() => onStatusChange(item.id, 'not_started')}
+                sx={{ 
+                  fontSize: 12,
+                  borderColor: 'divider',
+                  color: 'text.secondary'
+                }}
+              >
+                Reiniciar
+              </Button>
+            )}
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => {
+                const nextStatus = NEXT_STATUS_MAP[item.status];
+                nextStatus && onStatusChange(item.id, nextStatus);
+              }}
+              disabled={!NEXT_STATUS_MAP[item.status]}
+              endIcon={<ArrowForwardIcon />}
+              sx={{ 
+                fontSize: 12,
+                '&.Mui-disabled': {
+                  bgcolor: 'action.disabledBackground',
+                  color: 'text.disabled'
+                }
+              }}
+            >
+              Avançar
+            </Button>
+          </Box>
+        </Box>
+      </ContentCard>
     </motion.div>
   );
 };
@@ -257,6 +392,7 @@ const INITIAL_CAMPAIGNS: Campaign[] = [
 
 // Componente principal
 const ContentProgressPage = () => {
+  const theme = useTheme();
   const [campaigns, setCampaigns] = useState<Campaign[]>(INITIAL_CAMPAIGNS);
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>('1');
   const [searchTerm, setSearchTerm] = useState('');
@@ -366,200 +502,215 @@ const ContentProgressPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Progresso de Conteúdos</h1>
-          <p className="text-gray-600">Acompanhe e gerencie o desenvolvimento de materiais</p>
-        </div>
+    <Box sx={{ 
+      minHeight: '100vh', 
+      p: { xs: 2, md: 3 },
+      background: 'radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.05) 0%, transparent 25%), radial-gradient(circle at 90% 80%, rgba(124, 58, 237, 0.05) 0%, transparent 25%)'
+    }}>
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: { xs: 'column', md: 'row' }, 
+        justifyContent: 'space-between', 
+        alignItems: { xs: 'flex-start', md: 'center' }, 
+        gap: 3, 
+        mb: 4 
+      }}>
+        <Box>
+          <Typography variant="h4" fontWeight={600} gutterBottom>
+            Progresso de Conteúdos
+          </Typography>
+          <Typography color="text.secondary">
+            Acompanhe e gerencie o desenvolvimento de materiais
+          </Typography>
+        </Box>
         
-        <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
-          <div className="relative w-full">
-            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: { xs: 'column', sm: 'row' }, 
+          gap: 2, 
+          width: { xs: '100%', md: 'auto' }
+        }}>
+          <Box sx={{ position: 'relative', width: { xs: '100%', sm: 240 } }}>
+            <SearchIcon sx={{ 
+              position: 'absolute', 
+              left: 12, 
+              top: '50%', 
+              transform: 'translateY(-50%)', 
+              color: 'text.secondary' 
+            }} />
+            <StyledInput
               placeholder="Buscar conteúdos..."
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              sx={{ pl: 4, width: '100%' }}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-          </div>
+          </Box>
           
-          <select
-            className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          <StyledSelect
             value={selectedCampaignId}
-            onChange={(e) => setSelectedCampaignId(e.target.value)}
+            onChange={(e) => setSelectedCampaignId(e.target.value as string)}
+            sx={{ minWidth: 200 }}
           >
             {campaigns.map(campaign => (
-              <option key={campaign.id} value={campaign.id}>
+              <MenuItem key={campaign.id} value={campaign.id}>
                 {campaign.name}
-              </option>
+              </MenuItem>
             ))}
-          </select>
-        </div>
-      </div>
+          </StyledSelect>
+        </Box>
+      </Box>
 
-      <div className="bg-white rounded-xl shadow p-6 mb-8 border border-gray-200">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900">{currentCampaign.name}</h2>
-            <p className="text-gray-500">
+      <GlassPaper>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+          <Box>
+            <Typography variant="h5" fontWeight={600} gutterBottom>
+              {currentCampaign.name}
+            </Typography>
+            <Typography color="text.secondary">
               {new Date(currentCampaign.startDate).toLocaleDateString('pt-BR')} - {new Date(currentCampaign.endDate).toLocaleDateString('pt-BR')}
-            </p>
-          </div>
+            </Typography>
+          </Box>
           
-          <div className="text-center">
-            <div className="text-3xl font-bold text-blue-600">
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography variant="h4" fontWeight={600} color="primary">
               {Math.round(campaignProgress)}%
-            </div>
-            <div className="text-sm text-gray-500">Progresso Geral</div>
-          </div>
-        </div>
+            </Typography>
+            <Typography variant="body2" color="text.secondary">Progresso Geral</Typography>
+          </Box>
+        </Box>
         
-        <div className="w-full bg-gray-200 rounded-full h-2.5 mb-6">
-          <div 
-            className="bg-blue-600 h-2.5 rounded-full" 
-            style={{ width: `${campaignProgress}%` }}
-          />
-        </div>
+        <ProgressBar progress={campaignProgress} />
 
-        <div className="flex gap-3 mb-4">
-          <select
-            className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        <Box sx={{ display: 'flex', gap: 2, mt: 3, flexWrap: 'wrap' }}>
+          <StyledSelect
             value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
+            onChange={(e) => setFilterStatus(e.target.value as string)}
+            sx={{ minWidth: 180 }}
           >
-            <option value="all">Todos os status</option>
+            <MenuItem value="all">Todos os status</MenuItem>
             {Object.entries(STATUS_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>{label}</option>
+              <MenuItem key={value} value={value}>{label}</MenuItem>
             ))}
-          </select>
+          </StyledSelect>
 
-          <select
-            className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          <StyledSelect
             value={filterPlatform}
-            onChange={(e) => setFilterPlatform(e.target.value)}
+            onChange={(e) => setFilterPlatform(e.target.value as string)}
+            sx={{ minWidth: 180 }}
           >
-            <option value="all">Todas as plataformas</option>
-            <option value="instagram">Instagram</option>
-            <option value="facebook">Facebook</option>
-            <option value="linkedin">LinkedIn</option>
-            <option value="twitter">Twitter</option>
-            <option value="website">Website</option>
-          </select>
+            <MenuItem value="all">Todas as plataformas</MenuItem>
+            <MenuItem value="instagram">Instagram</MenuItem>
+            <MenuItem value="facebook">Facebook</MenuItem>
+            <MenuItem value="linkedin">LinkedIn</MenuItem>
+            <MenuItem value="twitter">Twitter</MenuItem>
+            <MenuItem value="website">Website</MenuItem>
+          </StyledSelect>
 
-          <button
+          <PrimaryButton
+            startIcon={<AddIcon />}
             onClick={() => setIsAddingTask(true)}
-            className="ml-auto flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+            sx={{ ml: 'auto' }}
           >
-            <FiPlus /> Adicionar Tarefa
-          </button>
-        </div>
-      </div>
+            Adicionar Tarefa
+          </PrimaryButton>
+        </Box>
+      </GlassPaper>
 
       {isAddingTask && (
-        <div className="bg-white rounded-xl shadow p-6 mb-6 border border-gray-200">
-          <h3 className="text-lg font-semibold mb-4">Adicionar Nova Tarefa</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Título*</label>
-              <input
-                type="text"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                value={newTask.title}
-                onChange={(e) => setNewTask({...newTask, title: e.target.value})}
-                placeholder="Nome da tarefa"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Responsável*</label>
-              <input
-                type="text"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                value={newTask.assignedTo}
-                onChange={(e) => setNewTask({...newTask, assignedTo: e.target.value})}
-                placeholder="Quem vai realizar"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
-              <select
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                value={newTask.type}
-                onChange={(e) => setNewTask({...newTask, type: e.target.value as ContentType})}
-              >
-                <option value="image">Imagem</option>
-                <option value="video">Vídeo</option>
-                <option value="text">Texto</option>
-                <option value="banner">Banner</option>
-                <option value="story">Story</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Plataforma</label>
-              <select
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                value={newTask.platform}
-                onChange={(e) => setNewTask({...newTask, platform: e.target.value as PlatformType})}
-              >
-                <option value="instagram">Instagram</option>
-                <option value="facebook">Facebook</option>
-                <option value="linkedin">LinkedIn</option>
-                <option value="twitter">Twitter</option>
-                <option value="website">Website</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-              <select
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                value={newTask.status}
-                onChange={(e) => setNewTask({...newTask, status: e.target.value as StatusType})}
-              >
-                {Object.entries(STATUS_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>{label}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Data de Entrega</label>
-              <input
-                type="date"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                value={newTask.dueDate}
-                onChange={(e) => setNewTask({...newTask, dueDate: e.target.value})}
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Observações</label>
-              <textarea
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        <GlassPaper>
+          <Typography variant="h6" fontWeight={600} gutterBottom>
+            Adicionar Nova Tarefa
+          </Typography>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3, mb: 3 }}>
+            <TextField
+              label="Título*"
+              fullWidth
+              value={newTask.title}
+              onChange={(e) => setNewTask({...newTask, title: e.target.value})}
+              placeholder="Nome da tarefa"
+            />
+            <TextField
+              label="Responsável*"
+              fullWidth
+              value={newTask.assignedTo}
+              onChange={(e) => setNewTask({...newTask, assignedTo: e.target.value})}
+              placeholder="Quem vai realizar"
+            />
+            <StyledSelect
+              label="Tipo"
+              fullWidth
+              value={newTask.type}
+              onChange={(e) => setNewTask({...newTask, type: e.target.value as ContentType})}
+            >
+              <MenuItem value="image">Imagem</MenuItem>
+              <MenuItem value="video">Vídeo</MenuItem>
+              <MenuItem value="text">Texto</MenuItem>
+              <MenuItem value="banner">Banner</MenuItem>
+              <MenuItem value="story">Story</MenuItem>
+            </StyledSelect>
+            <StyledSelect
+              label="Plataforma"
+              fullWidth
+              value={newTask.platform}
+              onChange={(e) => setNewTask({...newTask, platform: e.target.value as PlatformType})}
+            >
+              <MenuItem value="instagram">Instagram</MenuItem>
+              <MenuItem value="facebook">Facebook</MenuItem>
+              <MenuItem value="linkedin">LinkedIn</MenuItem>
+              <MenuItem value="twitter">Twitter</MenuItem>
+              <MenuItem value="website">Website</MenuItem>
+            </StyledSelect>
+            <StyledSelect
+              label="Status"
+              fullWidth
+              value={newTask.status}
+              onChange={(e) => setNewTask({...newTask, status: e.target.value as StatusType})}
+            >
+              {Object.entries(STATUS_LABELS).map(([value, label]) => (
+                <MenuItem key={value} value={value}>{label}</MenuItem>
+              ))}
+            </StyledSelect>
+            <TextField
+              label="Data de Entrega"
+              type="date"
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+              value={newTask.dueDate}
+              onChange={(e) => setNewTask({...newTask, dueDate: e.target.value})}
+            />
+            <Box sx={{ gridColumn: '1 / -1' }}>
+              <TextField
+                label="Observações"
+                fullWidth
+                multiline
+                rows={3}
                 value={newTask.notes || ''}
                 onChange={(e) => setNewTask({...newTask, notes: e.target.value})}
                 placeholder="Detalhes importantes"
-                rows={3}
               />
-            </div>
-          </div>
-          <div className="flex justify-end gap-3">
-            <button
+            </Box>
+          </Box>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+            <SecondaryButton
               onClick={() => setIsAddingTask(false)}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
             >
               Cancelar
-            </button>
-            <button
+            </SecondaryButton>
+            <PrimaryButton
               onClick={handleAddTask}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
               disabled={!newTask.title || !newTask.assignedTo}
             >
               Adicionar Tarefa
-            </button>
-          </div>
-        </div>
+            </PrimaryButton>
+          </Box>
+        </GlassPaper>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <Box sx={{ 
+        display: 'grid', 
+        gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', lg: '1fr 1fr 1fr' }, 
+        gap: 3 
+      }}>
         {filteredItems.map(item => (
           <ContentItemCard
             key={item.id}
@@ -569,24 +720,26 @@ const ContentProgressPage = () => {
             onDelete={handleDeleteItem}
           />
         ))}
-      </div>
+      </Box>
 
       {filteredItems.length === 0 && (
-        <div className="bg-white rounded-xl shadow p-8 text-center border border-gray-200">
-          <p className="text-gray-500">Nenhuma tarefa encontrada</p>
-          <button
+        <GlassPaper sx={{ textAlign: 'center' }}>
+          <Typography color="text.secondary" gutterBottom>
+            Nenhuma tarefa encontrada
+          </Typography>
+          <Button
             onClick={() => {
               setSearchTerm('');
               setFilterStatus('all');
               setFilterPlatform('all');
             }}
-            className="mt-4 text-blue-600 hover:text-blue-800"
+            sx={{ color: 'primary.main' }}
           >
             Limpar filtros
-          </button>
-        </div>
+          </Button>
+        </GlassPaper>
       )}
-    </div>
+    </Box>
   );
 };
 

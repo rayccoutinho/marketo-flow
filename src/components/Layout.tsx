@@ -39,19 +39,20 @@ import {
 
 const drawerWidth = 280;
 
-const ModernAppBar = styled(AppBar)(({ theme }) => ({
-  backdropFilter: 'blur(8px)',
-  backgroundColor: 'rgba(255, 255, 255, 0.8)',
+const GlassAppBar = styled(AppBar)(({ theme }) => ({
+  backdropFilter: 'blur(20px)',
+  WebkitBackdropFilter: 'blur(20px)',
+  backgroundColor: 'rgba(255, 255, 255, 0.7)',
   color: theme.palette.text.primary,
-  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-  borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
+  borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.03)',
   [theme.breakpoints.up('sm')]: {
     width: `calc(100% - ${drawerWidth}px)`,
     marginLeft: `${drawerWidth}px`,
   },
 }));
 
-const Sidebar = styled(Box)(({ theme }) => ({
+const GlassSidebar = styled(Box)(({ theme }) => ({
   width: drawerWidth,
   flexShrink: 0,
   [theme.breakpoints.up('sm')]: {
@@ -63,8 +64,23 @@ const Sidebar = styled(Box)(({ theme }) => ({
 const MainContent = styled(Box)(({ theme }) => ({
   flexGrow: 1,
   minHeight: '100vh',
+  background: `
+    radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.05) 0%, transparent 25%),
+    radial-gradient(circle at 90% 80%, rgba(124, 58, 237, 0.05) 0%, transparent 25%),
+    ${theme.palette.background.default}
+  `,
   [theme.breakpoints.up('sm')]: {
     marginLeft: `${drawerWidth}px`,
+  },
+}));
+
+const GlassMenu = styled(Menu)(({ theme }) => ({
+  '& .MuiPaper-root': {
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
   },
 }));
 
@@ -146,11 +162,18 @@ const Layout = ({ onLogout, children }: LayoutProps) => {
   };
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ 
+      display: 'flex', 
+      minHeight: '100vh',
+      background: theme.palette.background.default
+    }}>
       <CssBaseline />
       
-      <ModernAppBar position="fixed">
-        <Toolbar sx={{ px: { sm: 3 } }}>
+      <GlassAppBar position="fixed">
+        <Toolbar sx={{ 
+          px: { sm: 3 },
+          minHeight: '64px !important'
+        }}>
           <IconButton
             color="inherit"
             edge="start"
@@ -159,63 +182,113 @@ const Layout = ({ onLogout, children }: LayoutProps) => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+          <Typography variant="h6" noWrap component="div" sx={{ 
+            flexGrow: 1, 
+            fontWeight: 600,
+            letterSpacing: '-0.01em'
+          }}>
             Marketo Flow
           </Typography>
-          <IconButton onClick={handleMenuOpen}>
+          <IconButton onClick={handleMenuOpen} sx={{ p: 0 }}>
             <Avatar sx={{ 
               width: 36,
               height: 36,
-              bgcolor: theme.palette.primary.main
+              bgcolor: 'rgba(37, 99, 235, 0.1)',
+              color: theme.palette.primary.main,
+              border: '1px solid rgba(37, 99, 235, 0.2)'
             }}>
               <AccountIcon fontSize="small" />
             </Avatar>
           </IconButton>
         </Toolbar>
-      </ModernAppBar>
+      </GlassAppBar>
 
-      <Sidebar>
+      <GlassSidebar component="nav">
         <Box
           sx={{
             width: drawerWidth,
             height: '100vh',
             position: 'fixed',
-            bgcolor: 'background.paper',
-            borderRight: '1px solid',
-            borderColor: 'divider',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            backgroundColor: 'rgba(255, 255, 255, 0.7)',
+            borderRight: '1px solid rgba(255, 255, 255, 0.2)',
             display: { xs: mobileOpen ? 'block' : 'none', sm: 'block' },
-            overflowY: 'auto'
+            overflowY: 'auto',
+            boxShadow: '2px 0 16px rgba(0, 0, 0, 0.05)'
           }}
         >
           <Toolbar sx={{ 
             justifyContent: 'center', 
-            py: 3,
-            background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`
+            py: 4,
+            mb: 1,
+            position: 'relative',
+            '&:after': {
+              content: '""',
+              position: 'absolute',
+              bottom: 0,
+              left: 24,
+              right: 24,
+              height: '1px',
+              backgroundColor: 'rgba(0, 0, 0, 0.05)'
+            }
           }}>
-            <Typography 
-              variant="h6" 
-              noWrap 
-              component="div" 
-              sx={{ 
-                color: 'common.white',
-                fontWeight: 700,
-                letterSpacing: 1
-              }}
-            >
-              Marketo Flow
-            </Typography>
+            <Box sx={{ 
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2
+            }}>
+              <Box sx={{
+                width: 32,
+                height: 32,
+                borderRadius: '8px',
+                background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)'
+              }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2L3 7L12 12L21 7L12 2Z" fill="white"/>
+                  <path d="M3 12L12 17L21 12" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M3 17L12 22L21 17" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </Box>
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  color: theme.palette.text.primary,
+                  fontWeight: 700,
+                  fontSize: '1.25rem',
+                  letterSpacing: '-0.01em'
+                }}
+              >
+                Marketo Flow
+              </Typography>
+            </Box>
           </Toolbar>
           
-          <Box sx={{ flexGrow: 1, overflowY: 'auto', p: 2 }}>
+          <Box sx={{ 
+            flexGrow: 1, 
+            overflowY: 'auto', 
+            p: 2,
+            pt: 1
+          }}>
             {menuGroups.map((group, index) => (
               <React.Fragment key={index}>
                 <ListSubheader 
                   sx={{ 
                     bgcolor: 'transparent',
-                    color: 'text.secondary',
-                    fontWeight: 'medium',
-                    px: 0,
-                    pt: index > 0 ? 3 : 0
+                    color: theme.palette.text.secondary,
+                    fontWeight: 500,
+                    fontSize: '0.75rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                    px: 1.5,
+                    pt: index > 0 ? 3 : 1,
+                    pb: 1,
+                    lineHeight: '1.5',
+                    backdropFilter: 'blur(4px)'
                   }}
                 >
                   {group.subheader}
@@ -228,28 +301,38 @@ const Layout = ({ onLogout, children }: LayoutProps) => {
                         to={item.path}
                         selected={isItemSelected(item)}
                         sx={{
-                          borderRadius: 2,
+                          borderRadius: '8px',
                           mb: 0.5,
+                          px: 1.5,
+                          py: '8px',
                           '&.Mui-selected': {
-                            bgcolor: 'primary.light',
-                            color: 'primary.contrastText',
+                            backgroundColor: 'rgba(37, 99, 235, 0.08)',
+                            color: theme.palette.primary.main,
                             '& .MuiListItemIcon-root': {
-                              color: 'primary.contrastText'
+                              color: theme.palette.primary.main
                             }
                           },
                           '&:hover': {
-                            bgcolor: 'action.hover',
-                          }
+                            backgroundColor: 'rgba(0, 0, 0, 0.03)',
+                          },
+                          transition: 'all 0.2s ease'
                         }}
                       >
-                        <ListItemIcon sx={{ minWidth: 40 }}>
+                        <ListItemIcon sx={{ 
+                          minWidth: 36,
+                          color: isItemSelected(item) ? 
+                            theme.palette.primary.main : 
+                            theme.palette.text.secondary
+                        }}>
                           {item.icon}
                         </ListItemIcon>
                         <ListItemText 
                           primary={item.text} 
                           primaryTypographyProps={{ 
                             variant: 'body2',
-                            fontWeight: isItemSelected(item) ? 600 : 400
+                            fontWeight: isItemSelected(item) ? 600 : 400,
+                            fontSize: '0.875rem',
+                            letterSpacing: '-0.01em'
                           }}
                         />
                       </ListItemButton>
@@ -260,9 +343,9 @@ const Layout = ({ onLogout, children }: LayoutProps) => {
             ))}
           </Box>
         </Box>
-      </Sidebar>
+      </GlassSidebar>
 
-      <MainContent>
+      <MainContent component="main">
         <Toolbar />
         <Container maxWidth="xl" sx={{ 
           p: { xs: 2, sm: 3 },
@@ -275,12 +358,12 @@ const Layout = ({ onLogout, children }: LayoutProps) => {
         </Container>
       </MainContent>
 
-      <Menu
+      <GlassMenu
         anchorEl={anchorEl}
         open={open}
         onClose={handleMenuClose}
         anchorOrigin={{
-          vertical: 'top',
+          vertical: 'bottom',
           horizontal: 'right',
         }}
         transformOrigin={{
@@ -288,11 +371,11 @@ const Layout = ({ onLogout, children }: LayoutProps) => {
           horizontal: 'right',
         }}
         PaperProps={{
-          elevation: 3,
+          elevation: 0,
           sx: {
             mt: 1.5,
             minWidth: 200,
-            borderRadius: 2,
+            borderRadius: '12px',
             overflow: 'visible',
             '&:before': {
               content: '""',
@@ -302,29 +385,52 @@ const Layout = ({ onLogout, children }: LayoutProps) => {
               right: 14,
               width: 10,
               height: 10,
-              bgcolor: 'background.paper',
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+              borderLeft: '1px solid rgba(255, 255, 255, 0.2)',
               transform: 'translateY(-50%) rotate(45deg)',
               zIndex: 0,
             }
           }
         }}
       >
-        <MenuItem onClick={() => {
-          handleMenuClose();
-          navigate('/settings');
-        }}>
-          <ListItemIcon>
+        <MenuItem 
+          onClick={() => {
+            handleMenuClose();
+            navigate('/settings');
+          }}
+          sx={{
+            '&:hover': {
+              backgroundColor: 'rgba(0, 0, 0, 0.03)',
+              backdropFilter: 'blur(4px)'
+            },
+            py: 1.5,
+            px: 2
+          }}
+        >
+          <ListItemIcon sx={{ minWidth: 36 }}>
             <SettingsIcon fontSize="small" />
           </ListItemIcon>
-          Configurações
+          <Typography variant="body2">Configurações</Typography>
         </MenuItem>
-        <MenuItem onClick={handleLogoutClick}>
-          <ListItemIcon>
+        <Divider sx={{ my: 0.5 }} />
+        <MenuItem 
+          onClick={handleLogoutClick}
+          sx={{
+            '&:hover': {
+              backgroundColor: 'rgba(0, 0, 0, 0.03)',
+              backdropFilter: 'blur(4px)'
+            },
+            py: 1.5,
+            px: 2
+          }}
+        >
+          <ListItemIcon sx={{ minWidth: 36 }}>
             <LogoutIcon fontSize="small" />
           </ListItemIcon>
-          Sair
+          <Typography variant="body2">Sair</Typography>
         </MenuItem>
-      </Menu>
+      </GlassMenu>
     </Box>
   );
 };

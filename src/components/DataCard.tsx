@@ -5,7 +5,8 @@ import {
   Chip, 
   Box,
   SvgIcon,
-  styled 
+  styled,
+  useTheme 
 } from '@mui/material';
 import { TrendingUp, TrendingDown } from '@mui/icons-material';
 
@@ -22,12 +23,12 @@ const GradientCard = styled(Card)(({ theme }) => ({
   overflow: 'hidden',
   border: 'none',
   borderRadius: '16px',
-  boxShadow: '0 4px 24px rgba(0, 0, 0, 0.08)',
+  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
   transition: 'all 0.3s ease',
   background: theme.palette.background.paper,
   '&:hover': {
     transform: 'translateY(-4px)',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)'
+    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.08)'
   },
   '&::before': {
     content: '""',
@@ -36,7 +37,7 @@ const GradientCard = styled(Card)(({ theme }) => ({
     left: 0,
     right: 0,
     height: '4px',
-    background: 'linear-gradient(90deg, #6366F1, #8B5CF6)'
+    background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`
   }
 }));
 
@@ -47,6 +48,7 @@ const DataCard: React.FC<DataCardProps> = ({
   icon,
   variant = 'default'
 }) => {
+  const theme = useTheme();
   const isPositive = change >= 0;
 
   return (
@@ -55,8 +57,8 @@ const DataCard: React.FC<DataCardProps> = ({
         p: 3,
         height: '100%',
         ...(variant === 'accent' && {
-          background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1))',
-          border: '1px solid rgba(99, 102, 241, 0.2)'
+          background: `linear-gradient(135deg, rgba(37, 99, 235, 0.05), rgba(124, 58, 237, 0.05))`,
+          border: '1px solid rgba(37, 99, 235, 0.1)'
         })
       }}
     >
@@ -69,7 +71,9 @@ const DataCard: React.FC<DataCardProps> = ({
               display: 'block',
               mb: 1,
               fontWeight: 600,
-              letterSpacing: '0.5px'
+              letterSpacing: '0.5px',
+              fontSize: '0.75rem',
+              lineHeight: 1.5
             }}
           >
             {title}
@@ -81,11 +85,12 @@ const DataCard: React.FC<DataCardProps> = ({
               fontWeight: 700,
               lineHeight: 1.2,
               background: variant === 'accent' 
-                ? 'linear-gradient(90deg, #6366F1, #8B5CF6)' 
+                ? `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})` 
                 : 'none',
               WebkitBackgroundClip: variant === 'accent' ? 'text' : 'initial',
               WebkitTextFillColor: variant === 'accent' ? 'transparent' : 'initial',
-              color: variant === 'accent' ? 'primary' : 'text.primary'
+              color: variant === 'accent' ? 'primary' : 'text.primary',
+              fontSize: '1.75rem'
             }}
           >
             {value}
@@ -97,8 +102,9 @@ const DataCard: React.FC<DataCardProps> = ({
             sx={{
               p: 1.5,
               borderRadius: '12px',
-              bgcolor: 'rgba(99, 102, 241, 0.1)',
-              color: 'primary.main'
+              bgcolor: 'rgba(37, 99, 235, 0.1)',
+              color: 'primary.main',
+              lineHeight: 0
             }}
           >
             {icon}
@@ -123,15 +129,17 @@ const DataCard: React.FC<DataCardProps> = ({
               : 'rgba(239, 68, 68, 0.1)',
             color: isPositive ? 'success.main' : 'error.main',
             fontWeight: 600,
+            fontSize: '0.75rem',
             '.MuiChip-icon': {
-              marginRight: '4px'
+              marginRight: '4px',
+              marginLeft: 0
             }
           }}
         />
         <Typography 
           variant="caption" 
           color="text.secondary"
-          sx={{ ml: 1 }}
+          sx={{ ml: 1, fontSize: '0.75rem' }}
         >
           vs período anterior
         </Typography>
