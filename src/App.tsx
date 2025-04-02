@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Box, CircularProgress } from '@mui/material';
 import Login from './pages/Login';
+import HomePage from './pages/HomePage'; // Importação da nova Home Page
 import Dashboard from './pages/Dashboard';
 import CampaignBriefing from './pages/CampaignBriefing';
 import CampaignDetails from './pages/CampaignDetails';
@@ -48,7 +49,7 @@ function App() {
   const handleLogout = () => {
     localStorage.removeItem('authToken');
     setIsAuthenticated(false);
-    navigate('/login');
+    navigate('/');
   };
 
   if (isLoading) {
@@ -73,6 +74,17 @@ function App() {
       flexDirection: 'column'
     }}>
       <Routes>
+        {/* Rota pública - Home Page */}
+        <Route 
+          path="/" 
+          element={
+            isAuthenticated ? 
+              <Navigate to="/dashboard" replace /> : 
+              <HomePage />
+          } 
+        />
+        
+        {/* Rota pública - Login */}
         <Route 
           path="/login" 
           element={
@@ -81,14 +93,8 @@ function App() {
               <Login onLogin={handleLogin} />
           } 
         />
-        
-        <Route 
-          path="/" 
-          element={
-            <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
-          } 
-        />
 
+        {/* Rotas protegidas - Requer autenticação */}
         <Route element={<Layout onLogout={handleLogout} />}>
           {/* Dashboard */}
           <Route 
@@ -206,7 +212,7 @@ function App() {
           <Route 
             path="*" 
             element={
-              <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
+              <Navigate to={isAuthenticated ? "/dashboard" : "/"} replace />
             } 
           />
         </Route>
